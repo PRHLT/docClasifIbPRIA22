@@ -15,18 +15,11 @@ parser.add_argument('--path_res', type=str, help='Data path')
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    
-    # if(len(sys.argv)<2):
-    #     print("Error, number of iterations or system all information print argument, have not been passed!")
-    # else:
-    # prob = float(sys.argv[1]) #Filtering probability
-    # clases = sys.argv[2][1:len(sys.argv[2])-1] 
     prob = args.prob
     clases = args.classes
     clases = clases.split(',')#Class list
     print("CARGANDO TODOS LOS ARCHIVOS Y SUS PALABRAS")
     #carpeta = location of JMBD files
-    # carpeta ='/Users/Juanjo Flores/OneDrive/Desktop/Clasificación de imágenes con RNN/PRHLT/code/paper_final/JMBD_4949_5clases_loo'
     carpeta = args.data_path
     # directorio  = os.listdir(carpeta)
     directorio = glob.glob(os.path.join(carpeta, "*idx"))
@@ -120,12 +113,11 @@ if __name__ == "__main__":
 
                 if len(m) != f_tv[word]:   
                     p_c_notv[c,word] = (m_c[c] - f_c_tv[c,word]) / (len(m) - f_tv[word])
-                    if p_c_notv[c,word] < 0:
-                        raise Exception(f'p_c_notv[c,word] negative value {p_c_notv[c,word]} c={c} word={word} -> m_c[c] - f_c_tv[c,word] m_c[c]={m_c[c]} f_c_tv[c,word]={f_c_tv[c,word]}     -       m_c[c] - f_c_tv[c,word] = {m_c[c] - f_c_tv[c,word]}')
                 else:
                     p_c_notv[c,word] = m_c[c]/(len(m))
             else:
                 p_c_notv[c,word] = m_c[c]/(len(m)-f_tv[word])
+            p_c_notv[c,word] = max(0.0, p_c_notv[c,word])
     
     print('CALCULANDO EL INFORMATION GAIN DE CADA PALABRA')
     ig = {} #IG de un palabra
@@ -160,4 +152,3 @@ if __name__ == "__main__":
                 f.write(s)
             else: break
             i += 1
-    #python .\infogain_compute.py 0 [P,CP,O,A,T]
