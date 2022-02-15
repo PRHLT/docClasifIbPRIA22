@@ -11,12 +11,12 @@ for try in $trys; do
     for ngf in "${ngfs[@]}"; do
 #        for numfeat in "${numfeats[@]}"; do
         for numfeat in $numfeats; do
-            python main.py --epochs 15 --work_dir work_LOO_JMBD4949 \
+            python main.py --epochs 50 --work_dir work_1 \
             --layers ${ngf} --batch_size 64 --lr 0.1 --optim ADAM \
             --num_workers 0 --seed ${try}  --num_feats ${numfeat} \
             --tr_data work_JMBD4949_loo/tfidf_4949_loo.txt \
             --te_data work_JMBD4949_loo/tfidf_4949_loo.txt \
-            --class_dict work_JMBD4949_loo/tfidf_4949_loo_classes.txt --LOO true
+            --class_dict work_JMBD4949_loo/tfidf_4949_loo_classes.txt
         done
     done
 done

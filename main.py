@@ -185,7 +185,6 @@ def main():
         while(n_test < num_exps):
             textDataset = dataset.TextDataset(opts=opts, n_test=n_test, info=info)
             num_exps = len(textDataset.data_tr_dev) + 1
-            print(n_test)
             n_test += 1
             net = models.Net(layers=opts.layers, len_feats=textDataset.len_feats, n_classes=textDataset.num_classes, opts=opts)
             net.to(device)
@@ -208,10 +207,7 @@ def main():
             f.write("{} {}{}\n".format(ids, y, res))
             ys.append(y)
             hyps.append(np.argmax(results_test))
-            print(ys, hyps, results_test)
             del net
-            if n_test == 5:
-                break
         f.close()
         acc = accuracy_score(ys, hyps)
         logger.info(f'Accuracy: {acc}')
