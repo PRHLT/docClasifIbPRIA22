@@ -13,6 +13,7 @@ parser.add_argument('--data_path', type=str, help='Data path')
 parser.add_argument('--path_res_test', type=str, help='Data path', default="")
 parser.add_argument('--path_res_train', type=str, help='Data path')
 parser.add_argument('--IG_file', type=str, help='Data path')
+parser.add_argument('--path_res_classes', type=str, help='Data path')
 args = parser.parse_args()
 
 if __name__ == "__main__":
@@ -117,6 +118,10 @@ if __name__ == "__main__":
                 n = str(tf_train_Idf[doc,pal]) + ' '
                 f.write(n)
             f.write(f'{clases_dict.get(n_clase)}\n')
+    
+    with open(args.path_res_classes, "w") as f:
+        for c, n_c in clases_dict.items():
+            f.write(f'{c} {n_c}\n')
     
     if args.path_res_test != "":
         #CÁLCULO TF TEST:

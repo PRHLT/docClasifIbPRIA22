@@ -17,7 +17,7 @@ args = parser.parse_args()
 if __name__ == "__main__":
     prob = args.prob
     clases = args.classes
-    clases = clases.split(',')#Class list
+    clases = list(set(clases.split(',')))#Class list
     print("CARGANDO TODOS LOS ARCHIVOS Y SUS PALABRAS")
     #carpeta = location of JMBD files
     carpeta = args.data_path
