@@ -25,6 +25,7 @@ if __name__ == "__main__":
     directorio = glob.glob(os.path.join(carpeta, "*idx"))
     clases = args.classes
     clases = clases.split(',')#Class list
+    clases = [c.lower() for c in clases]
     clases_dict = {c:i for i,c in enumerate(clases)}
     m = [] #TODOS LOS DOCUMENTOS
     prob = args.prob #Probabilidad por la que filtramos 
@@ -43,7 +44,9 @@ if __name__ == "__main__":
         f.close()
         acum = 0 #Acumulador de las probabilidades de las palabras del doc
         lw = [] #set con todas las palabras del doc
-        t_doc =  doc.split('.')[0][0]
+        t_doc =  doc.split('_')[-1].split(".")[0].lower()
+        if t_doc not in clases: 
+            continue
         for line in lines:
             line = line.strip() #Quitar espacios blancos inecesarios
             word, prob_word = line.split() #Split por espacios en blanco
@@ -113,7 +116,7 @@ if __name__ == "__main__":
         for doc in m:
             d = doc + ' '
             f.write(d)
-            n_clase = doc.split('.')[0].split('_')[-1]
+            n_clase = doc.split('.')[0].split('_')[-1].lower()
             for pal in words:
                 n = str(tf_train_Idf[doc,pal]) + ' '
                 f.write(n)
@@ -144,21 +147,22 @@ if __name__ == "__main__":
             lines = f.readlines() 
             f.close()
             acum = 0 #Acumulador de las probabilidades de las palabras del doc 
-            t_doc =  doc.split('.')[0][0]
-            if t_doc == 'p':  
-                for line in lines:
-                    line = line.strip() #Quitar espacios blancos inecesarios
-                    word, prob_word = line.split() #Split por espacios en blanco
-                    prob_word = float(prob_word)
-                    if(prob_word > prob):
-                        #Calculo de fD -> Numero total de palabras en X
-                        acum += prob_word
-                        if f_vD.get((doc, word), 0) == 0:
-                            f_vD[doc,word] = prob_word
-                        else:
-                            f_vD[doc,word] += prob_word              
-                fD[doc] = acum
-                m.append(doc)
+            t_doc =  doc.split('_')[-1].split(".")[0].lower()
+            if t_doc not in clases: 
+                continue
+            for line in lines:
+                line = line.strip() #Quitar espacios blancos inecesarios
+                word, prob_word = line.split() #Split por espacios en blanco
+                prob_word = float(prob_word)
+                if(prob_word > prob):
+                    #Calculo de fD -> Numero total de palabras en X
+                    acum += prob_word
+                    if f_vD.get((doc, word), 0) == 0:
+                        f_vD[doc,word] = prob_word
+                    else:
+                        f_vD[doc,word] += prob_word              
+            fD[doc] = acum
+            m.append(doc)
         
         
         #Tf= f(v,D)/f(D)
@@ -186,7 +190,7 @@ if __name__ == "__main__":
             for doc in m:
                 d = doc + ' '
                 f.write(d)
-                n_clase = doc.split('.')[0].split('_')[-1]
+                n_clase = doc.split('.')[0].split('_')[-1].lower()
                 for pal in words:
                     if (doc,pal) in tf_test_Idf:
                         n = str(tf_test_Idf[doc,pal]) + ' '

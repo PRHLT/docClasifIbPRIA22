@@ -18,6 +18,8 @@ if __name__ == "__main__":
     prob = args.prob
     clases = args.classes
     clases = list(set(clases.split(',')))#Class list
+    clases = [c.lower() for c in clases]
+    print(clases)
     print("CARGANDO TODOS LOS ARCHIVOS Y SUS PALABRAS")
     #carpeta = location of JMBD files
     carpeta = args.data_path
@@ -29,10 +31,13 @@ if __name__ == "__main__":
     for path in directorio:
         # path = carpeta + '/' + doc
         doc = path.split("/")[-1]
+        t_doc =  doc.split('_')[-1].split(".")[0].lower()
+        if t_doc not in clases: 
+            continue
         f = open(path, "r")
         lines = f.readlines() 
         f.close()  
-        t_doc =  doc.split('.')[0][0]
+       
         m.append(doc)
         for line in lines:
             line = line.strip() #Quitar espacios blancos inecesarios
@@ -74,7 +79,7 @@ if __name__ == "__main__":
     for c in clases:
         r = 0           
         for doc in m:
-            clas_doc =  doc.split('.')[0].split('_')[-1]
+            clas_doc =  doc.split('.')[0].split('_')[-1].lower()
             if clas_doc == c:
                 path = carpeta + '/' + doc
                 f = open(path, "r")
@@ -107,6 +112,7 @@ if __name__ == "__main__":
     p_c = {}
     for c in clases: 
         p_c[c] = m_c[c]/(len(m)-1) 
+        print(f'{c} {m_c[c]} {len(m)-1} - {p_c[c]}')
         for word in v:
             if (c,word) in f_c_tv: 
                 p_c_tv[c,word] = f_c_tv[c,word] / f_tv[word]
