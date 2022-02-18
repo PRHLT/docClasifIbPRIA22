@@ -182,9 +182,12 @@ def main():
         f = open(fname, "w")
         f.write("Legajo GT(index) Softmax\n")
         ys, hyps = [], []
+        num_exps = len(info[0]) + 1
+        path_save_remove = os.path.join(path_save, "*")
         while(n_test < num_exps):
+            print(f'Exp {n_test} \ {num_exps}')
+            os.system(f'rm -rf {path_save_remove}') #TODO change
             textDataset = dataset.TextDataset(opts=opts, n_test=n_test, info=info)
-            num_exps = len(textDataset.data_tr_dev) + 1
             n_test += 1
             net = models.Net(layers=opts.layers, len_feats=textDataset.len_feats, n_classes=textDataset.num_classes, opts=opts)
             net.to(device)
@@ -205,6 +208,7 @@ def main():
             for s in results_test:
                 res+=" {}".format(str(s))
             f.write("{} {}{}\n".format(ids, y, res))
+            f.flush()
             ys.append(y)
             hyps.append(np.argmax(results_test))
             del net

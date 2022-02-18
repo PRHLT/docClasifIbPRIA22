@@ -51,6 +51,14 @@ class Arguments(object):
             type=str,
             help="""dense | dense_var""",
         )
+
+        general.add_argument(
+            "--path_file_groups",
+            default="",
+            type=str,
+            help="""""",
+        )
+        
         general.add_argument(
             "--steps",
             default='50,50',
@@ -139,6 +147,13 @@ class Arguments(object):
             default='32,64,128',
             type=str,
             help="Layers for the FF or RNN network",
+        )
+
+        general.add_argument(
+            "--classes",
+            default='P,CP,O,A,T',
+            type=str,
+            help="Classes to use",
         )
 
 
@@ -441,6 +456,11 @@ class Arguments(object):
         self.opts.layers = [int(x) for x in layers.split(",")]
         steps = self.opts.steps
         self.opts.steps = [int(x) for x in steps.split(",")]
+
+        clases = self.opts.classes
+        clases = list(set(clases.split(',')))#Class list
+        clases = [c.lower() for c in clases]
+        self.opts.classes = clases
 
         # --- set logging data
         self.opts.log_level_id = getattr(logging, self.opts.log_level.upper())

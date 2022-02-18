@@ -5,6 +5,8 @@ from torch.utils.data import Dataset
 import logging
 import pytorch_lightning as pl
 import numpy as np
+from functools import wraps
+from time import time
 
 class tDataset(Dataset):
 
@@ -54,6 +56,7 @@ class tDataset(Dataset):
             sample = self.transform(sample)
 
         return sample
+
 
 def load_dict_class(path):
     res = {}
@@ -135,6 +138,49 @@ def load_RWs(opts):
     else:
         data_te = None
     return data_tr, data_te, len_feats, classes, class_dict, number_to_class
+
+def get_groups(p:str, classes:list):
+    f = open(p, "r")
+    lines = f.readlines()
+    f.close()
+    res = []
+    for line in lines:
+        c, ini, fin = line.strip().split(" ")
+        if c not in classes:
+            continue
+        ini, fin = int(ini), int(fin)
+        res.append([c, ini, fin])
+    return res
+
+def timing(f):
+    @wraps(f)
+    def wrap(*args, **kw):
+        ts = time()
+        result = f(*args, **kw)
+        te = time()
+        print('func:%r args:[ %r] took: %2.4f sec' % \
+          (f.__name__, kw, te-ts))
+        return result
+    return wrap
+
+# @timing
+def search_group(groups:list, npage:int):
+    for c, ini, fin in groups:
+        if ini <= npage <= fin:
+            return ini, fin
+    raise Exception(f'Group for {npage} not found')
+
+# @timing
+def search_pages_tfidf(data:list, ini, fin):
+    train = []
+    for i in data:
+        npage = int(i[-1].split("_")[1])
+        if ini <= npage <= fin:
+            continue
+        train.append(i)
+    return train
+
+
 class TextDataset(pl.LightningDataModule):
 
     def __init__(self, train_transforms=None, val_transforms=None, test_transforms=None, dims=None, opts=None, n_test=None, info=None):
@@ -145,7 +191,13 @@ class TextDataset(pl.LightningDataModule):
         if opts.LOO:
             self.data_tr_dev, self.data_test, self.len_feats, self.num_classes, self.class_dict, self.number_to_class = info
             self.data_test = [self.data_tr_dev[n_test]]
-            self.data_tr_dev = self.data_tr_dev[:n_test] + self.data_tr_dev[n_test+1:]
+            if opts.path_file_groups != "":
+                groups = get_groups(opts.path_file_groups, opts.classes)
+                page_test = int(self.data_test[0][-1].split("_")[1])
+                ini, fin = search_group(groups, page_test)
+                self.data_tr_dev = search_pages_tfidf(self.data_tr_dev, ini, fin)
+            else:
+                self.data_tr_dev = self.data_tr_dev[:n_test] + self.data_tr_dev[n_test+1:]
         else:
             self.data_tr_dev, self.data_test, self.len_feats, self.num_classes, self.class_dict, self.number_to_class = load_RWs(self.opts)
    
