@@ -310,6 +310,12 @@ class Arguments(object):
             help="""Leaving one out option""",
         )
         train.add_argument(
+            "--all_files",
+            default="no",
+            type=self._str_to_bool,
+            help="""Leaving one out option""",
+        )
+        train.add_argument(
             "--IG_file",
             default="/data/carabela/index_viejos/vector_tfidf_max_test",
             type=str,

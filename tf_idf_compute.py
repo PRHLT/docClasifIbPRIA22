@@ -6,6 +6,18 @@ import math
 import sys
 import argparse
 
+def _str_to_bool(data):
+    """
+    Nice way to handle bool flags:
+    from: https://stackoverflow.com/a/43357954
+    """
+    if data.lower() in ("yes", "true", "t", "y", "1"):
+        return True
+    elif data.lower() in ("no", "false", "f", "n", "0"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
+
 parser = argparse.ArgumentParser(description='Create the spans')
 parser.add_argument('--prob', type=float, help='Filtering probability')
 parser.add_argument('--classes', type=str, help='List of separated value of classes')
@@ -14,6 +26,7 @@ parser.add_argument('--path_res_test', type=str, help='Data path', default="")
 parser.add_argument('--path_res_train', type=str, help='Data path')
 parser.add_argument('--IG_file', type=str, help='Data path')
 parser.add_argument('--path_res_classes', type=str, help='Data path')
+parser.add_argument('--all_files', type=_str_to_bool, help='Data path')
 args = parser.parse_args()
 
 if __name__ == "__main__":
@@ -26,6 +39,8 @@ if __name__ == "__main__":
     clases = args.classes
     clases = clases.split(',')#Class list
     clases = [c.lower() for c in clases]
+    if args.all_files:
+        clases.append("other")
     clases_dict = {c:i for i,c in enumerate(clases)}
     m = [] #TODOS LOS DOCUMENTOS
     prob = args.prob #Probabilidad por la que filtramos 
@@ -45,7 +60,7 @@ if __name__ == "__main__":
         acum = 0 #Acumulador de las probabilidades de las palabras del doc
         lw = [] #set con todas las palabras del doc
         t_doc =  doc.split('_')[-1].split(".")[0].lower()
-        if t_doc not in clases: 
+        if t_doc not in clases and not args.all_files: 
             continue
         for line in lines:
             line = line.strip() #Quitar espacios blancos inecesarios
@@ -117,9 +132,15 @@ if __name__ == "__main__":
             d = doc + ' '
             f.write(d)
             n_clase = doc.split('.')[0].split('_')[-1].lower()
+            # print(tf_train_Idf)
             for pal in words:
-                n = str(tf_train_Idf[doc,pal]) + ' '
+                n = str(tf_train_Idf.get((doc,pal), 0.0)) + ' '
                 f.write(n)
+            if n_clase not in clases:
+                if not args.all_files:
+                    raise Exception(f'Class {n_clase} not found')
+                else:
+                    n_clase = "other"
             f.write(f'{clases_dict.get(n_clase)}\n')
     
     with open(args.path_res_classes, "w") as f:
@@ -148,7 +169,7 @@ if __name__ == "__main__":
             f.close()
             acum = 0 #Acumulador de las probabilidades de las palabras del doc 
             t_doc =  doc.split('_')[-1].split(".")[0].lower()
-            if t_doc not in clases: 
+            if t_doc not in clases and not args.all_files: 
                 continue
             for line in lines:
                 line = line.strip() #Quitar espacios blancos inecesarios
@@ -195,4 +216,9 @@ if __name__ == "__main__":
                     if (doc,pal) in tf_test_Idf:
                         n = str(tf_test_Idf[doc,pal]) + ' '
                         f.write(n)
+                if n_clase not in clases:
+                    if not args.all_files:
+                        raise Exception(f'Class {n_clase} not found')
+                    else:
+                        n_clase = "other"
                 f.write(f'{clases_dict.get(n_clase)}\n')

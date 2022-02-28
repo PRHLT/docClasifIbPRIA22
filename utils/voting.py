@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 
 path_file_groups = "/data/carabela_segmentacion/idxs_JMBD4949/idxs_clasif_per_page/all_classes_noS/groups"
-path_results = "/data2/jose/projects/docClasifIbPRIA22/works_LOO_JMBD4949_1page/work_128_numFeat256/results.txt"
+path_results = "/data2/jose/projects/docClasifIbPRIA22/works_LOO_JMBD4949_1page/work_128_numFeat512/results.txt"
 
 def read_results(p:str):
     f = open(p, "r")

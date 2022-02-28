@@ -20,7 +20,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import CSVLogger
 from pytorch_lightning.loggers import WandbLogger
 import wandb
-
+from utils.voting import voting
 
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
@@ -184,39 +184,111 @@ def main():
         ys, hyps = [], []
         num_exps = len(info[0]) + 1
         path_save_remove = os.path.join(path_save, "*")
-        while(n_test < num_exps):
-            print(f'Exp {n_test} \ {num_exps}')
-            os.system(f'rm -rf {path_save_remove}') #TODO change
-            textDataset = dataset.TextDataset(opts=opts, n_test=n_test, info=info)
-            n_test += 1
-            net = models.Net(layers=opts.layers, len_feats=textDataset.len_feats, n_classes=textDataset.num_classes, opts=opts)
-            net.to(device)
-            trainer = pl.Trainer(min_epochs=opts.epochs, max_epochs=opts.epochs, logger=[logger_csv], #wandb_logger
-                    deterministic=True if opts.seed is not None else False,
-                    default_root_dir=path_save,
-                )
-            trainer.fit(net, textDataset)
-            results_test = trainer.test(net, textDataset)
-            results_test = trainer.predict(net, textDataset)
-            results_test = torch.cat(results_test, dim=0)
+        if opts.path_file_groups == "":
+            while(n_test < num_exps):
+                print(f'Exp {n_test} \ {num_exps}')
+                os.system(f'rm -rf {path_save_remove}') #TODO change
+                textDataset = dataset.TextDataset(opts=opts, n_test=n_test, info=info)
+                n_test += 1
+                net = models.Net(layers=opts.layers, len_feats=textDataset.len_feats, n_classes=textDataset.num_classes, opts=opts)
+                net.to(device)
+                trainer = pl.Trainer(min_epochs=opts.epochs, max_epochs=opts.epochs, logger=[logger_csv], #wandb_logger
+                        deterministic=True if opts.seed is not None else False,
+                        default_root_dir=path_save,
+                    )
+                trainer.fit(net, textDataset)
+                results_test = trainer.test(net, textDataset)
+                results_test = trainer.predict(net, textDataset)
+                results_test = torch.cat(results_test, dim=0)
 
-            # Save to file
-            y = [y[1] for y in textDataset.cancerDt_test.data][0]
-            ids = textDataset.cancerDt_test.ids[0]
-            results_test = tensor_to_numpy(results_test)[0]
-            res=""
-            for s in results_test:
-                res+=" {}".format(str(s))
-            f.write("{} {}{}\n".format(ids, y, res))
-            f.flush()
-            ys.append(y)
-            hyps.append(np.argmax(results_test))
-            del net
+                # Save to file
+                y = [y[1] for y in textDataset.cancerDt_test.data][0]
+                save_to_file(textDataset, f, y, results_test)
+                ys.append(y)
+                hyps.append(np.argmax(results_test))
+                del net
+        else:
+            groups = get_groups(opts.path_file_groups, opts.classes)
+            for ngroup, (c, ini, fin) in enumerate(groups):
+                os.system(f'rm -rf {path_save_remove}') #TODO change
+                print(f'Group {ngroup}/{len(groups)} {c} {ini} {fin}')
+                for npage in range(ini, fin+1):
+                    n_test = search_page(info[0], npage)
+                    textDataset = dataset.TextDataset(opts=opts, n_test=n_test, info=info)
+                    n_test += 1
+                    print(f'page: {npage} (num {n_test} in data)')
+                    if npage == ini:
+                        print(f'Training for the first time')
+                        
+                        net = models.Net(layers=opts.layers, len_feats=textDataset.len_feats, n_classes=textDataset.num_classes, opts=opts)
+                        net.to(device)
+                        trainer = pl.Trainer(min_epochs=opts.epochs, max_epochs=opts.epochs, logger=[logger_csv], #wandb_logger
+                            deterministic=True if opts.seed is not None else False,
+                            default_root_dir=path_save,
+                        )
+                        trainer.fit(net, textDataset)
+                    else:
+                        print(f'Using already trained model')
+                    results_test = trainer.test(net, textDataset)
+                    results_test = trainer.predict(net, textDataset)
+                    results_test = torch.cat(results_test, dim=0)
+                    # Save to file
+                    y = [y[1] for y in textDataset.cancerDt_test.data][0]
+                    save_to_file(textDataset, f, y, results_test)
+                    ys.append(y)
+                    hyps.append(np.argmax(results_test))
+                del net
+                print("--------------------\n\n")
+            acc_v, acc_results, fallos = voting(read_results(fname), groups)
+            logger.info(f'Accuracy voting: {acc_v}')
+            logger.info(f'Error voting: {1-acc_v}')
         f.close()
         acc = accuracy_score(ys, hyps)
         logger.info(f'Accuracy: {acc}')
         logger.info(f'Error: {1-acc}')
         
+def read_results(p:str):
+    f = open(p, "r")
+    lines = f.readlines()[1:]
+    f.close()
+    res = {}
+    for line in lines:
+        pname, gt, *hyps = line.strip().split(" ")
+        gt = int(gt)
+        hyps = [float(x) for x in hyps]
+        page = int(pname.split("_")[1])
+        res[page] = [gt,hyps]
+    return res    
+
+def search_page(data:list, num):
+    for i, d in enumerate(data):
+        npage = int(d[-1].split("_")[1])
+        if npage == num:
+            return i 
+    raise Exception(f'page for {num} not found')
+
+def get_groups(p:str, classes:list):
+    f = open(p, "r")
+    lines = f.readlines()
+    f.close()
+    res = []
+    for line in lines:
+        c, ini, fin = line.strip().split(" ")
+        if c not in classes:
+            continue
+        ini, fin = int(ini), int(fin)
+        res.append([c, ini, fin])
+    return res
+
+def save_to_file(textDataset, f, y, results_test):
+    ids = textDataset.cancerDt_test.ids[0]
+    results_test = tensor_to_numpy(results_test)[0]
+    res=""
+    for s in results_test:
+        res+=" {}".format(str(s))
+    f.write("{} {}{}\n".format(ids, y, res))
+    f.flush()
+    
 
 if __name__ == "__main__":
     main()

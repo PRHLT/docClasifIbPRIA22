@@ -121,7 +121,7 @@ def load_RWs(opts):
             data[i].append(labels[i])
             data[i].append(fnames[i])
             classes.add(labels[i])
-
+        print(classes)
         len_feats = len(data[0]) - 2
         return data, len_feats, len(classes)
 
@@ -196,6 +196,7 @@ class TextDataset(pl.LightningDataModule):
                 page_test = int(self.data_test[0][-1].split("_")[1])
                 ini, fin = search_group(groups, page_test)
                 self.data_tr_dev = search_pages_tfidf(self.data_tr_dev, ini, fin)
+                print(f'Data: {len(self.data_tr_dev)} samples')
             else:
                 self.data_tr_dev = self.data_tr_dev[:n_test] + self.data_tr_dev[n_test+1:]
         else:

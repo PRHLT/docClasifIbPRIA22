@@ -7,11 +7,25 @@ import operator
 import argparse
 import numpy as np
 
+def _str_to_bool(data):
+    """
+    Nice way to handle bool flags:
+    from: https://stackoverflow.com/a/43357954
+    """
+    if data.lower() in ("yes", "true", "t", "y", "1"):
+        return True
+    elif data.lower() in ("no", "false", "f", "n", "0"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
+
 parser = argparse.ArgumentParser(description='Create the spans')
 parser.add_argument('--prob', type=float, help='Filtering probability')
 parser.add_argument('--classes', type=str, help='List of separated value of classes')
 parser.add_argument('--data_path', type=str, help='Data path')
 parser.add_argument('--path_res', type=str, help='Data path')
+parser.add_argument('--all_files', type=_str_to_bool, help='Data path')
+
 args = parser.parse_args()
 
 if __name__ == "__main__":
@@ -19,6 +33,8 @@ if __name__ == "__main__":
     clases = args.classes
     clases = list(set(clases.split(',')))#Class list
     clases = [c.lower() for c in clases]
+    if args.all_files:
+        clases.append("other")
     print(clases)
     print("CARGANDO TODOS LOS ARCHIVOS Y SUS PALABRAS")
     #carpeta = location of JMBD files
@@ -32,7 +48,7 @@ if __name__ == "__main__":
         # path = carpeta + '/' + doc
         doc = path.split("/")[-1]
         t_doc =  doc.split('_')[-1].split(".")[0].lower()
-        if t_doc not in clases: 
+        if t_doc not in clases and not args.all_files: 
             continue
         f = open(path, "r")
         lines = f.readlines() 
@@ -97,7 +113,32 @@ if __name__ == "__main__":
                             s_c[c,doc,word] = prob_word
                         else:
                             s_c[c,doc,word] = max(s_c[c,doc,word], prob_word)
-        m_c[c] = r           
+        m_c[c] = r       
+    #### Caso especial para usar otra clase extra
+    if args.all_files:
+        c = "other"
+        r = 0
+        for doc in m:
+            clas_doc =  doc.split('.')[0].split('_')[-1].lower()
+            if clas_doc not in clases: # SI no ha sido tratado ya
+                path = carpeta + '/' + doc
+                f = open(path, "r")
+                lines = f.readlines() 
+                f.close()
+                r += 1 
+                for line in lines:
+                    line = line.strip() #Quitar espacios blancos inecesarios
+                    word = line.split()[0] #Split por espacios en blanco
+                    if len(word) < 3: continue
+                    prob_word = float(line.split()[1]) #Cogemos la probabilidad
+                    if(prob_word > prob):
+                        v.append(word)
+                        if s_c.get((c,doc,word), 0) == 0: #Devuelve el valor de doc,word que es una prob si ya esta y si no un 0.
+                            s_c[c,doc,word] = prob_word
+                        else:
+                            s_c[c,doc,word] = max(s_c[c,doc,word], prob_word)
+        m_c[c] = r 
+    #### FIN Caso especial     
     v = set(v)
     for c in clases:
         for doc in m:
@@ -107,7 +148,17 @@ if __name__ == "__main__":
                         f_c_tv[c,word] = float(s_c[c,doc,word])
                     else:
                         f_c_tv[c,word] += float(s_c[c,doc,word])
-        
+    #### Caso especial para usar otra clase extra
+    # if args.all_files:
+    #     v = "other"
+    #     for doc in m:
+    #         for word in v:
+    #             if (c,doc,word) in s_c:   
+    #                 if f_c_tv.get((c,word),0) == 0:
+    #                     f_c_tv[c,word] = float(s_c[c,doc,word])
+    #                 else:
+    #                     f_c_tv[c,word] += float(s_c[c,doc,word])
+    #### FIN Caso especial    
     #2º.Para cada clase calculamos P(c|tv) y P(c_not|tv):
     p_c = {}
     for c in clases: 
