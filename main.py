@@ -55,11 +55,15 @@ def save_results_eval(results_tests, dir, logger, number_to):
 
 def save_results(dataset, tensor, opts):
     outputs = tensor_to_numpy(tensor)
+    class_dict, number_to_class = load_dict_class(opts.class_dict)
     dir = opts.work_dir
     create_dir(dir)
     fname = os.path.join(dir, "results.txt")
     f = open(fname, "w")
-    f.write("Legajo GT(index) Softmax\n")
+    f.write("Legajo GT(index) Softmax")
+    for i in range(len(number_to_class)):
+        f.write(f' {number_to_class[i]}')
+    f.write("\n")
     ys = [y[1] for y in dataset.data]
     for id_x, label, prediction in zip(dataset.ids, ys, outputs):
         res=""
@@ -123,6 +127,20 @@ def prepare():
     ch.setLevel(logging.INFO)
     return logger, opts
 
+def load_dict_class(path):
+    res = {}
+    number_to_class = {}
+    f = open(path, "r")
+    lines = f.readlines()
+    f.close()
+    for line in lines:
+        line = line.strip()
+        legajo, c = line.split(" ")
+        c = int(c)
+        res[legajo] = c
+        number_to_class[c] = legajo
+    return res, number_to_class
+
 def main():
 
     logger, opts = prepare()
@@ -168,10 +186,15 @@ def main():
             )
         if opts.do_train:
             trainer.fit(net, textDataset)
-        results_test = trainer.test(net, textDataset)
-        results_test = trainer.predict(net, textDataset)
-        results_test = torch.cat(results_test, dim=0)
-        # print(results_test)
+        if opts.do_test:
+            results_test = trainer.test(net, textDataset)
+            results_test = trainer.predict(net, textDataset)
+            results_test = torch.cat(results_test, dim=0)
+            # print(results_test)
+        elif opts.do_prod:
+            # results_test = trainer.test(net, textDataset)
+            results_test = trainer.predict(net, textDataset)
+            results_test = torch.cat(results_test, dim=0)
         save_results(textDataset.cancerDt_test, results_test, opts)
     else:
         n_test, num_exps = 0, 90000
@@ -179,8 +202,13 @@ def main():
         dir = opts.work_dir
         create_dir(dir)
         fname = os.path.join(dir, "results.txt")
+        class_dict, number_to_class = load_dict_class(opts.class_dict)
         f = open(fname, "w")
-        f.write("Legajo GT(index) Softmax\n")
+        # f.write("Legajo GT(index) Softmax\n")
+        f.write("Legajo GT(index) Softmax")
+        for i in range(len(number_to_class)):
+            f.write(f' {number_to_class[i]}')
+        f.write("\n")
         ys, hyps = [], []
         num_exps = len(info[0]) + 1
         path_save_remove = os.path.join(path_save, "*")
@@ -209,14 +237,14 @@ def main():
                 del net
         else:
             groups = get_groups(opts.path_file_groups, opts.classes)
-            for ngroup, (c, ini, fin) in enumerate(groups):
+            for ngroup, (l, c, ini, fin) in enumerate(groups):
                 os.system(f'rm -rf {path_save_remove}') #TODO change
-                print(f'Group {ngroup}/{len(groups)} {c} {ini} {fin}')
+                print(f'Group {ngroup}/{len(groups)} {c} {ini} {fin} {l}')
                 for npage in range(ini, fin+1):
-                    n_test = search_page(info[0], npage)
-                    textDataset = dataset.TextDataset(opts=opts, n_test=n_test, info=info)
+                    n_test = search_page(info[0], npage, l)
+                    textDataset = dataset.TextDataset(opts=opts, n_test=n_test, info=info, legajo=l)
                     n_test += 1
-                    print(f'page: {npage} (num {n_test} in data)')
+                    print(f'page: {npage} (num {n_test} in data) - {l}')
                     if npage == ini:
                         print(f'Training for the first time')
                         
@@ -226,7 +254,12 @@ def main():
                             deterministic=True if opts.seed is not None else False,
                             default_root_dir=path_save,
                         )
-                        trainer.fit(net, textDataset)
+                        try:
+                            trainer.fit(net, textDataset)
+                        except Exception as e:
+                            print(f'Problem with sample page: {npage} (num {n_test} in data) - {l}')
+                            # print(f'{net}')
+                            raise e
                     else:
                         print(f'Using already trained model')
                     results_test = trainer.test(net, textDataset)
@@ -239,9 +272,9 @@ def main():
                     hyps.append(np.argmax(results_test))
                 del net
                 print("--------------------\n\n")
-            acc_v, acc_results, fallos = voting(read_results(fname), groups)
-            logger.info(f'Accuracy voting: {acc_v}')
-            logger.info(f'Error voting: {1-acc_v}')
+            # acc_v, acc_results, fallos = voting(read_results(fname), groups)
+            # logger.info(f'Accuracy voting: {acc_v}')
+            # logger.info(f'Error voting: {1-acc_v}')
         f.close()
         acc = accuracy_score(ys, hyps)
         logger.info(f'Accuracy: {acc}')
@@ -256,14 +289,15 @@ def read_results(p:str):
         pname, gt, *hyps = line.strip().split(" ")
         gt = int(gt)
         hyps = [float(x) for x in hyps]
-        page = int(pname.split("_")[1])
+        page = int(pname.split("_")[2])
         res[page] = [gt,hyps]
     return res    
 
-def search_page(data:list, num):
+def search_page(data:list, num, l:str):
     for i, d in enumerate(data):
-        npage = int(d[-1].split("_")[1])
-        if npage == num:
+        npage = int(d[-1].split("_")[2])
+        l_page = d[-1].split("_")[0]
+        if npage == num and l_page == l:
             return i 
     raise Exception(f'page for {num} not found')
 
@@ -273,11 +307,11 @@ def get_groups(p:str, classes:list):
     f.close()
     res = []
     for line in lines:
-        c, ini, fin = line.strip().split(" ")
+        l, c, ini, fin = line.strip().split(" ")
         if c not in classes:
             continue
         ini, fin = int(ini), int(fin)
-        res.append([c, ini, fin])
+        res.append([l, c, ini, fin])
     return res
 
 def save_to_file(textDataset, f, y, results_test):

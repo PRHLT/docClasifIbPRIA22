@@ -22,11 +22,15 @@ parser = argparse.ArgumentParser(description='Create the spans')
 parser.add_argument('--prob', type=float, help='Filtering probability')
 parser.add_argument('--classes', type=str, help='List of separated value of classes')
 parser.add_argument('--data_path', type=str, help='Data path')
+parser.add_argument('--data_path_te', type=str, help='Data path')
+parser.add_argument('--data_path_prod', type=str, help='Data path')
 parser.add_argument('--path_res_test', type=str, help='Data path', default="")
+parser.add_argument('--path_res_prod', type=str, help='Data path', default="")
 parser.add_argument('--path_res_train', type=str, help='Data path')
 parser.add_argument('--IG_file', type=str, help='Data path')
 parser.add_argument('--path_res_classes', type=str, help='Data path')
 parser.add_argument('--all_files', type=_str_to_bool, help='Data path')
+parser.add_argument('--prod', type=_str_to_bool, help='Data path')
 args = parser.parse_args()
 
 if __name__ == "__main__":
@@ -151,7 +155,7 @@ if __name__ == "__main__":
         #CÁLCULO TF TEST:
         print('CALCULANDO EL VECTOR TF.IDF DE TEST')
         # carpeta = '/Users/Juanjo Flores/OneDrive/Desktop/Clasificación de imágenes con RNN/code/leave_one_out/all_samples_4950'
-        carpeta = args.data_path
+        carpeta = args.data_path_te
         # directorio  = os.listdir(carpeta)
         directorio = glob.glob(os.path.join(carpeta, "*idx"))
         m = [] #TODOS LOS DOCUMENTOS
@@ -222,3 +226,79 @@ if __name__ == "__main__":
                     else:
                         n_clase = "other"
                 f.write(f'{clases_dict.get(n_clase)}\n')
+    
+    if args.path_res_prod != "":
+        #CÁLCULO TF TEST:
+        print('CALCULANDO EL VECTOR TF.IDF DE TEST')
+        # carpeta = '/Users/Juanjo Flores/OneDrive/Desktop/Clasificación de imágenes con RNN/code/leave_one_out/all_samples_4950'
+        carpeta = args.data_path_prod
+        # directorio  = os.listdir(carpeta)
+        directorio = glob.glob(os.path.join(carpeta, "*idx"))
+        m = [] #TODOS LOS DOCUMENTOS
+        fD = {} #Diccionario, key -> Doc, valor -> Numero de palabras en X.
+        f_vD = {} #Diccionario key -> (doc,word) valor -> estimación del numero de veces que aparece una palabra v en un doc.
+        tf_test = {} #Diccionario key -> (Doc, palabra), valor-> Tf
+        f_tv = {} #(El numero de documentos que contiene la palabra), Diccionario key -> (doc,palabra), valor -> prob max
+        s = {} #Diccionario key -> doc, palabra, valor -> prob max de esa palabra en ese doc
+        for path in directorio:
+            ## ESCOGER PALABRAS CON PROBABILIDAD DE 0.5 PARA ARRIBA
+            #print("Loading {}".format(path))
+            doc = path.split("/")[-1]
+            f = open(path, "r")
+            lines = f.readlines() 
+            f.close()
+            acum = 0 #Acumulador de las probabilidades de las palabras del doc 
+            t_doc =  doc.split('_')[-1].split(".")[0].lower()
+            # if t_doc not in clases and not args.all_files: 
+            #     continue
+            for line in lines:
+                line = line.strip() #Quitar espacios blancos inecesarios
+                word, prob_word = line.split() #Split por espacios en blanco
+                prob_word = float(prob_word)
+                if(prob_word > prob):
+                    #Calculo de fD -> Numero total de palabras en X
+                    acum += prob_word
+                    if f_vD.get((doc, word), 0) == 0:
+                        f_vD[doc,word] = prob_word
+                    else:
+                        f_vD[doc,word] += prob_word              
+            fD[doc] = acum
+            m.append(doc)
+        
+        
+        #Tf= f(v,D)/f(D)
+        for word in lw_all:
+            for doc in m:
+                if (doc, word) in f_vD:
+                    tf_test[doc, word] = f_vD[doc, word]/fD[doc]
+                    
+        #Calculo de Tf_test*Idf:
+        tf_test_Idf = {} #Diccionario key -> tupla(doc, palabra), valor -> tf*idf
+        for doc in m:
+            for word in lw_all:
+                if (doc,word) in tf_test and word in idf:
+                    tf_test_Idf[doc,word] = tf_test[doc,word]*idf[word]
+                else:
+                    tf_test_Idf[doc,word] = 0.0
+
+        with open(args.path_res_prod, 'w') as f:
+            f.write('LegajoID ')
+            for word in words:
+                s = word + ' '
+                f.write(s)
+            f.write('clase')
+            f.write('\n')
+            for doc in m:
+                d = doc + ' '
+                f.write(d)
+                n_clase = doc.split('.')[0].split('_')[-1].lower()
+                for pal in words:
+                    if (doc,pal) in tf_test_Idf:
+                        n = str(tf_test_Idf[doc,pal]) + ' '
+                        f.write(n)
+                # if n_clase not in clases:
+                #     if not args.all_files:
+                #         raise Exception(f'Class {n_clase} not found')
+                #     else:
+                #         n_clase = "other"
+                f.write(f'{clases_dict.get(n_clase, -1)}\n')

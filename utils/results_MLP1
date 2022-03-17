@@ -1,0 +1,299 @@
+#####
+Class p - 0.47619047619047616 (140/294)
+Class cp - 0.11904761904761904 (35/294)
+Class o - 0.07142857142857142 (21/294)
+Class a - 0.04081632653061224 (12/294)
+Class t - 0.03741496598639456 (11/294)
+Class other - 0.25510204081632654 (75/294)
+#####
+------------------------------
+File work_128_numFeat256 : Accuracy 78.57142857142857  Error 21.42857142857143  +-4.69041575982343
+            pred:p  pred:cp  pred:o  pred:a  pred:t  pred:other
+true:p         122        4       1       1       5           7
+true:cp          2       27       3       1       0           2
+true:o           4        2      12       1       0           2
+true:a           3        0       1       8       0           0
+true:t           2        1       0       0       6           2
+true:other      10        3       5       1       0          56
+       Error in file pages_788-789_a.idx   GT a  HYP p (Prob 100.0)
+       Error in file pages_394-403_t.idx   GT t  HYP other (Prob 54.322236999999994)
+       Error in file pages_1156-1163_cp.idx   GT cp  HYP a (Prob 99.98362)
+       Error in file pages_102-105_p.idx   GT p  HYP t (Prob 99.97475999999999)
+       Error in file pages_1470-1471_cp.idx   GT cp  HYP other (Prob 99.99498)
+       Error in file pages_842-843_p.idx   GT p  HYP a (Prob 100.0)
+       Error in file pages_194-213_p.idx   GT p  HYP cp (Prob 100.0)
+       Error in file pages_486-487_o.idx   GT o  HYP cp (Prob 99.99999000000001)
+       Error in file pages_878-889_o.idx   GT o  HYP a (Prob 99.99987)
+       Error in file pages_744-765_p.idx   GT p  HYP other (Prob 99.359506)
+       Error in file pages_1168-1175_dp.idx   GT other  HYP a (Prob 99.2502)
+       Error in file pages_354-359_t.idx   GT t  HYP p (Prob 100.0)
+       Error in file pages_988-989_p.idx   GT p  HYP other (Prob 100.0)
+       Error in file pages_1060-1063_p.idx   GT p  HYP other (Prob 87.34172)
+       Error in file pages_1072-1141_ap.idx   GT other  HYP o (Prob 72.83117)
+       Error in file pages_404-407_a.idx   GT a  HYP p (Prob 100.0)
+       Error in file pages_1038-1057_o.idx   GT o  HYP cp (Prob 99.3501)
+       Error in file pages_870-875_a.idx   GT a  HYP p (Prob 98.34711)
+       Error in file pages_838-839_o.idx   GT o  HYP p (Prob 99.98543)
+       Error in file pages_152-153_cp.idx   GT cp  HYP o (Prob 100.0)
+       Error in file pages_1000-1001_p.idx   GT p  HYP t (Prob 100.0)
+       Error in file pages_96-97_cen.idx   GT other  HYP p (Prob 90.11872)
+       Error in file pages_432-433_p.idx   GT p  HYP cp (Prob 100.0)
+       Error in file pages_1650-1651_p.idx   GT p  HYP other (Prob 99.99993)
+       Error in file pages_1210-1211_l.idx   GT other  HYP p (Prob 99.999845)
+       Error in file pages_648-651_cp.idx   GT cp  HYP p (Prob 100.0)
+       Error in file pages_718-719_p.idx   GT p  HYP cp (Prob 100.0)
+       Error in file pages_184-185_p.idx   GT p  HYP t (Prob 100.0)
+       Error in file pages_520-527_v.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_730-731_d.idx   GT other  HYP p (Prob 95.649385)
+       Error in file pages_846-849_r.idx   GT other  HYP cp (Prob 99.999976)
+       Error in file pages_622-623_n.idx   GT other  HYP p (Prob 99.99994)
+       Error in file pages_562-575_cp.idx   GT cp  HYP p (Prob 100.0)
+       Error in file pages_814-815_p.idx   GT p  HYP cp (Prob 100.0)
+       Error in file pages_634-643_cp.idx   GT cp  HYP other (Prob 100.0)
+       Error in file pages_1218-1223_o.idx   GT o  HYP p (Prob 90.38983)
+       Error in file pages_890-893_cen.idx   GT other  HYP cp (Prob 97.92798)
+       Error in file pages_818-823_dt.idx   GT other  HYP o (Prob 62.448996)
+       Error in file pages_312-313_d.idx   GT other  HYP o (Prob 96.41573)
+       Error in file pages_1032-1033_p.idx   GT p  HYP t (Prob 100.0)
+       Error in file pages_1248-1263_cen.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_174-177_o.idx   GT o  HYP p (Prob 100.0)
+       Error in file pages_1410-1413_cen.idx   GT other  HYP cp (Prob 100.0)
+       Error in file pages_1418-1421_t.idx   GT t  HYP p (Prob 99.97427)
+       Error in file pages_370-393_cen.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_350-351_cp.idx   GT cp  HYP o (Prob 84.74998500000001)
+       Error in file pages_840-841_unk.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_938-943_t.idx   GT t  HYP other (Prob 99.999845)
+       Error in file pages_946-951_p.idx   GT p  HYP o (Prob 100.0)
+       Error in file pages_790-793_cp.idx   GT cp  HYP o (Prob 98.95369000000001)
+       Error in file pages_64-67_t.idx   GT t  HYP cp (Prob 100.0)
+       Error in file pages_1428-1431_p.idx   GT p  HYP t (Prob 100.0)
+       Error in file pages_56-59_o.idx   GT o  HYP other (Prob 100.0)
+       Error in file pages_658-665_p.idx   GT p  HYP other (Prob 100.0)
+       Error in file pages_1164-1167_dp.idx   GT other  HYP o (Prob 100.0)
+       Error in file pages_438-453_a.idx   GT a  HYP o (Prob 99.908686)
+       Error in file pages_124-131_tras.idx   GT other  HYP o (Prob 66.18677)
+       Error in file pages_712-713_o.idx   GT o  HYP other (Prob 99.999607)
+       Error in file pages_346-349_ap.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_1654-1657_p.idx   GT p  HYP other (Prob 99.99659)
+       Error in file pages_320-331_red.idx   GT other  HYP p (Prob 95.81508600000001)
+       Error in file pages_894-897_o.idx   GT o  HYP p (Prob 100.0)
+       Error in file pages_100-101_p.idx   GT p  HYP other (Prob 99.99620999999999)
+------------------------------
+File work_128_numFeat512 : Accuracy 85.37414965986395  Error 14.625850340136054  +-4.039300508957323
+            pred:p  pred:cp  pred:o  pred:a  pred:t  pred:other
+true:p         128        1       1       0       3           7
+true:cp          2       28       0       0       1           4
+true:o           4        0      13       1       0           3
+true:a           0        1       0      10       0           1
+true:t           0        0       0       0      11           0
+true:other       6        2       3       1       2          61
+       Error in file pages_1414-1415_a.idx   GT a  HYP cp (Prob 98.31963999999999)
+       Error in file pages_1244-1247_p.idx   GT p  HYP t (Prob 66.39346499999999)
+       Error in file pages_1068-1071_p.idx   GT p  HYP t (Prob 97.337127)
+       Error in file pages_864-865_p.idx   GT p  HYP other (Prob 99.99995)
+       Error in file pages_878-889_o.idx   GT o  HYP other (Prob 99.99877000000001)
+       Error in file pages_1182-1209_cp.idx   GT cp  HYP other (Prob 61.17281)
+       Error in file pages_488-491_a.idx   GT a  HYP other (Prob 99.99999000000001)
+       Error in file pages_410-421_v.idx   GT other  HYP p (Prob 98.804593)
+       Error in file pages_1038-1057_o.idx   GT o  HYP p (Prob 61.44714)
+       Error in file pages_234-235_p.idx   GT p  HYP o (Prob 99.65894)
+       Error in file pages_838-839_o.idx   GT o  HYP other (Prob 99.824417)
+       Error in file pages_152-153_cp.idx   GT cp  HYP t (Prob 100.0)
+       Error in file pages_1422-1425_cen.idx   GT other  HYP t (Prob 100.0)
+       Error in file pages_1650-1651_p.idx   GT p  HYP other (Prob 99.538726)
+       Error in file pages_1210-1211_l.idx   GT other  HYP p (Prob 99.999523)
+       Error in file pages_730-731_d.idx   GT other  HYP cp (Prob 99.99996399999999)
+       Error in file pages_776-777_p.idx   GT p  HYP t (Prob 100.0)
+       Error in file pages_232-233_p.idx   GT p  HYP cp (Prob 100.0)
+       Error in file pages_562-575_cp.idx   GT cp  HYP other (Prob 95.04089)
+       Error in file pages_634-643_cp.idx   GT cp  HYP p (Prob 100.0)
+       Error in file pages_1218-1223_o.idx   GT o  HYP p (Prob 96.89941)
+       Error in file pages_614-615_cp.idx   GT cp  HYP p (Prob 100.0)
+       Error in file pages_88-91_o.idx   GT o  HYP p (Prob 100.0)
+       Error in file pages_910-931_cen.idx   GT other  HYP cp (Prob 100.0)
+       Error in file pages_604-605_li.idx   GT other  HYP a (Prob 100.0)
+       Error in file pages_436-437_al.idx   GT other  HYP p (Prob 90.24957)
+       Error in file pages_702-705_o.idx   GT o  HYP a (Prob 100.0)
+       Error in file pages_76-87_v.idx   GT other  HYP o (Prob 100.0)
+       Error in file pages_1268-1389_v.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_798-807_cp.idx   GT cp  HYP other (Prob 98.954016)
+       Error in file pages_956-963_cp.idx   GT cp  HYP other (Prob 99.81913)
+       Error in file pages_94-95_cen.idx   GT other  HYP o (Prob 100.0)
+       Error in file pages_840-841_unk.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_768-769_o.idx   GT o  HYP other (Prob 100.0)
+       Error in file pages_1476-1479_r.idx   GT other  HYP o (Prob 100.0)
+       Error in file pages_712-713_o.idx   GT o  HYP p (Prob 71.23003)
+       Error in file pages_936-937_p.idx   GT p  HYP other (Prob 100.0)
+       Error in file pages_292-295_p.idx   GT p  HYP other (Prob 99.999034)
+       Error in file pages_632-633_p.idx   GT p  HYP other (Prob 100.0)
+       Error in file pages_346-349_ap.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_236-241_unk.idx   GT other  HYP t (Prob 99.74947)
+       Error in file pages_508-511_p.idx   GT p  HYP other (Prob 48.886089999999996)
+       Error in file pages_100-101_p.idx   GT p  HYP other (Prob 86.44335)
+------------------------------
+File work_128_numFeat1024 : Accuracy 92.85714285714286  Error 7.142857142857139  +-2.9439202887759484
+            pred:p  pred:cp  pred:o  pred:a  pred:t  pred:other
+true:p         134        1       0       1       0           4
+true:cp          0       32       0       0       0           3
+true:o           1        0      18       0       0           2
+true:a           0        1       0      11       0           0
+true:t           0        0       0       0      11           0
+true:other       3        3       0       0       2          67
+       Error in file pages_1414-1415_a.idx   GT a  HYP cp (Prob 99.43011)
+       Error in file pages_1058-1059_p.idx   GT p  HYP cp (Prob 99.999976)
+       Error in file pages_1038-1057_o.idx   GT o  HYP other (Prob 61.656886)
+       Error in file pages_838-839_o.idx   GT o  HYP other (Prob 75.379324)
+       Error in file pages_188-189_p.idx   GT p  HYP a (Prob 100.0)
+       Error in file pages_1210-1211_l.idx   GT other  HYP p (Prob 99.12984999999999)
+       Error in file pages_730-731_d.idx   GT other  HYP cp (Prob 84.74325999999999)
+       Error in file pages_562-575_cp.idx   GT cp  HYP other (Prob 88.45824)
+       Error in file pages_136-137_d.idx   GT other  HYP t (Prob 99.99379)
+       Error in file pages_1218-1223_o.idx   GT o  HYP p (Prob 99.94635)
+       Error in file pages_98-99_cen.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_1434-1435_p.idx   GT p  HYP other (Prob 99.864763)
+       Error in file pages_314-317_p.idx   GT p  HYP other (Prob 55.951629999999994)
+       Error in file pages_956-963_cp.idx   GT cp  HYP other (Prob 86.362386)
+       Error in file pages_840-841_unk.idx   GT other  HYP p (Prob 99.99933)
+       Error in file pages_1636-1649_c.idx   GT other  HYP cp (Prob 96.88871999999999)
+       Error in file pages_346-349_ap.idx   GT other  HYP cp (Prob 82.41877)
+       Error in file pages_1654-1657_p.idx   GT p  HYP other (Prob 98.46254599999999)
+       Error in file pages_236-241_unk.idx   GT other  HYP t (Prob 99.976975)
+       Error in file pages_516-519_cp.idx   GT cp  HYP other (Prob 54.517114)
+       Error in file pages_100-101_p.idx   GT p  HYP other (Prob 99.73809)
+------------------------------
+File work_128_numFeat2048 : Accuracy 91.83673469387756  Error 8.16326530612244  +-3.129843185743804
+            pred:p  pred:cp  pred:o  pred:a  pred:t  pred:other
+true:p         135        0       1       0       0           4
+true:cp          0       29       0       1       0           5
+true:o           0        0      18       0       0           3
+true:a           0        1       0      11       0           0
+true:t           0        0       0       0      11           0
+true:other       4        2       1       0       2          66
+       Error in file pages_1414-1415_a.idx   GT a  HYP cp (Prob 96.18128999999999)
+       Error in file pages_1182-1209_cp.idx   GT cp  HYP other (Prob 94.10963)
+       Error in file pages_988-989_p.idx   GT p  HYP o (Prob 55.222446000000005)
+       Error in file pages_1072-1141_ap.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_1038-1057_o.idx   GT o  HYP other (Prob 99.811196)
+       Error in file pages_838-839_o.idx   GT o  HYP other (Prob 96.225387)
+       Error in file pages_1148-1149_dp.idx   GT other  HYP o (Prob 93.4896)
+       Error in file pages_1634-1635_cp.idx   GT cp  HYP other (Prob 90.74904000000001)
+       Error in file pages_1210-1211_l.idx   GT other  HYP p (Prob 99.966)
+       Error in file pages_562-575_cp.idx   GT cp  HYP other (Prob 59.110695)
+       Error in file pages_136-137_d.idx   GT other  HYP t (Prob 99.99745)
+       Error in file pages_1218-1223_o.idx   GT o  HYP other (Prob 52.321459999999995)
+       Error in file pages_436-437_al.idx   GT other  HYP cp (Prob 99.393106)
+       Error in file pages_956-963_cp.idx   GT cp  HYP other (Prob 99.8116)
+       Error in file pages_840-841_unk.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_790-793_cp.idx   GT cp  HYP a (Prob 30.600843)
+       Error in file pages_292-295_p.idx   GT p  HYP other (Prob 76.827395)
+       Error in file pages_346-349_ap.idx   GT other  HYP cp (Prob 99.912137)
+       Error in file pages_266-291_cen.idx   GT other  HYP p (Prob 98.11069)
+       Error in file pages_1654-1657_p.idx   GT p  HYP other (Prob 83.49415)
+       Error in file pages_236-241_unk.idx   GT other  HYP t (Prob 91.378224)
+       Error in file pages_516-519_cp.idx   GT cp  HYP other (Prob 70.53296)
+       Error in file pages_512-513_p.idx   GT p  HYP other (Prob 89.83254000000001)
+       Error in file pages_100-101_p.idx   GT p  HYP other (Prob 99.98256599999999)
+------------------------------
+File work_128_numFeat4096 : Accuracy 92.85714285714286  Error 7.142857142857139  +-2.9439202887759484
+            pred:p  pred:cp  pred:o  pred:a  pred:t  pred:other
+true:p         137        0       0       0       0           3
+true:cp          1       31       0       1       0           2
+true:o           0        1      16       0       0           4
+true:a           0        1       0      11       0           0
+true:t           0        0       0       0      11           0
+true:other       3        3       0       0       2          67
+       Error in file pages_1414-1415_a.idx   GT a  HYP cp (Prob 94.786197)
+       Error in file pages_1156-1163_cp.idx   GT cp  HYP other (Prob 52.20622)
+       Error in file pages_878-889_o.idx   GT o  HYP cp (Prob 99.90337)
+       Error in file pages_1038-1057_o.idx   GT o  HYP other (Prob 86.003363)
+       Error in file pages_838-839_o.idx   GT o  HYP other (Prob 91.648227)
+       Error in file pages_1210-1211_l.idx   GT other  HYP p (Prob 99.33395)
+       Error in file pages_730-731_d.idx   GT other  HYP cp (Prob 39.508227)
+       Error in file pages_1416-1417_cp.idx   GT cp  HYP a (Prob 81.04701)
+       Error in file pages_622-623_n.idx   GT other  HYP p (Prob 91.032404)
+       Error in file pages_562-575_cp.idx   GT cp  HYP p (Prob 37.578413)
+       Error in file pages_136-137_d.idx   GT other  HYP t (Prob 95.80465000000001)
+       Error in file pages_1218-1223_o.idx   GT o  HYP other (Prob 96.271306)
+       Error in file pages_436-437_al.idx   GT other  HYP cp (Prob 86.19435)
+       Error in file pages_1434-1435_p.idx   GT p  HYP other (Prob 100.0)
+       Error in file pages_314-317_p.idx   GT p  HYP other (Prob 91.88962000000001)
+       Error in file pages_956-963_cp.idx   GT cp  HYP other (Prob 99.99838)
+       Error in file pages_840-841_unk.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_712-713_o.idx   GT o  HYP other (Prob 91.498977)
+       Error in file pages_346-349_ap.idx   GT other  HYP cp (Prob 83.06207)
+       Error in file pages_236-241_unk.idx   GT other  HYP t (Prob 96.576816)
+       Error in file pages_100-101_p.idx   GT p  HYP other (Prob 99.9602)
+------------------------------
+File work_128_numFeat8192 : Accuracy 90.47619047619048  Error 9.523809523809518  +-3.3554819712314443
+            pred:p  pred:cp  pred:o  pred:a  pred:t  pred:other
+true:p         137        0       0       0       0           3
+true:cp          2       28       0       0       0           5
+true:o           0        0      15       0       0           6
+true:a           0        1       0      11       0           0
+true:t           1        0       0       0      10           0
+true:other       5        2       0       0       3          65
+       Error in file pages_1414-1415_a.idx   GT a  HYP cp (Prob 80.30797)
+       Error in file pages_1156-1163_cp.idx   GT cp  HYP other (Prob 74.031395)
+       Error in file pages_878-889_o.idx   GT o  HYP other (Prob 59.56357)
+       Error in file pages_1182-1209_cp.idx   GT cp  HYP other (Prob 83.39497)
+       Error in file pages_1038-1057_o.idx   GT o  HYP other (Prob 93.099177)
+       Error in file pages_838-839_o.idx   GT o  HYP other (Prob 87.6757)
+       Error in file pages_96-97_cen.idx   GT other  HYP p (Prob 69.00691)
+       Error in file pages_1210-1211_l.idx   GT other  HYP p (Prob 99.99298)
+       Error in file pages_648-651_cp.idx   GT cp  HYP other (Prob 49.72315)
+       Error in file pages_730-731_d.idx   GT other  HYP cp (Prob 55.003429999999994)
+       Error in file pages_562-575_cp.idx   GT cp  HYP p (Prob 73.78829)
+       Error in file pages_136-137_d.idx   GT other  HYP t (Prob 98.17786)
+       Error in file pages_1218-1223_o.idx   GT o  HYP other (Prob 100.0)
+       Error in file pages_312-313_d.idx   GT other  HYP t (Prob 86.19898)
+       Error in file pages_314-317_p.idx   GT p  HYP other (Prob 80.99088)
+       Error in file pages_702-705_o.idx   GT o  HYP other (Prob 98.80562)
+       Error in file pages_956-963_cp.idx   GT cp  HYP other (Prob 99.990153)
+       Error in file pages_94-95_cen.idx   GT other  HYP p (Prob 84.91699)
+       Error in file pages_840-841_unk.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_790-793_cp.idx   GT cp  HYP p (Prob 32.390276)
+       Error in file pages_824-829_t.idx   GT t  HYP p (Prob 51.37053)
+       Error in file pages_722-725_res.idx   GT other  HYP p (Prob 35.770148)
+       Error in file pages_712-713_o.idx   GT o  HYP other (Prob 51.762)
+       Error in file pages_346-349_ap.idx   GT other  HYP cp (Prob 62.59479)
+       Error in file pages_1654-1657_p.idx   GT p  HYP other (Prob 77.28526)
+       Error in file pages_236-241_unk.idx   GT other  HYP t (Prob 93.48452)
+       Error in file pages_516-519_cp.idx   GT cp  HYP other (Prob 58.2673)
+       Error in file pages_100-101_p.idx   GT p  HYP other (Prob 99.9912)
+------------------------------
+File work_128_numFeat16384 : Accuracy 90.47619047619048  Error 9.523809523809518  +-3.3554819712314443
+            pred:p  pred:cp  pred:o  pred:a  pred:t  pred:other
+true:p         136        0       0       0       1           3
+true:cp          1       27       1       0       0           6
+true:o           1        0      16       0       0           4
+true:a           0        1       0      11       0           0
+true:t           0        0       0       0      11           0
+true:other       5        3       0       0       2          65
+       Error in file pages_1414-1415_a.idx   GT a  HYP cp (Prob 52.585654999999996)
+       Error in file pages_1156-1163_cp.idx   GT cp  HYP other (Prob 77.452457)
+       Error in file pages_1244-1247_p.idx   GT p  HYP t (Prob 88.050205)
+       Error in file pages_878-889_o.idx   GT o  HYP other (Prob 96.099234)
+       Error in file pages_1038-1057_o.idx   GT o  HYP other (Prob 58.098143)
+       Error in file pages_838-839_o.idx   GT o  HYP other (Prob 55.0013)
+       Error in file pages_1634-1635_cp.idx   GT cp  HYP other (Prob 69.1576)
+       Error in file pages_1210-1211_l.idx   GT other  HYP p (Prob 99.84308)
+       Error in file pages_648-651_cp.idx   GT cp  HYP other (Prob 50.492895000000004)
+       Error in file pages_1510-1583_v.idx   GT other  HYP p (Prob 100.0)
+       Error in file pages_622-623_n.idx   GT other  HYP p (Prob 61.0682)
+       Error in file pages_562-575_cp.idx   GT cp  HYP p (Prob 99.323326)
+       Error in file pages_136-137_d.idx   GT other  HYP t (Prob 83.06199)
+       Error in file pages_1218-1223_o.idx   GT o  HYP p (Prob 73.49149)
+       Error in file pages_312-313_d.idx   GT other  HYP p (Prob 51.62299)
+       Error in file pages_436-437_al.idx   GT other  HYP cp (Prob 64.42905)
+       Error in file pages_314-317_p.idx   GT p  HYP other (Prob 95.693994)
+       Error in file pages_956-963_cp.idx   GT cp  HYP other (Prob 69.33746)
+       Error in file pages_840-841_unk.idx   GT other  HYP p (Prob 99.99692399999999)
+       Error in file pages_1264-1267_cp.idx   GT cp  HYP other (Prob 61.86403)
+       Error in file pages_790-793_cp.idx   GT cp  HYP o (Prob 50.928706)
+       Error in file pages_722-725_res.idx   GT other  HYP cp (Prob 32.059598)
+       Error in file pages_712-713_o.idx   GT o  HYP other (Prob 91.825634)
+       Error in file pages_346-349_ap.idx   GT other  HYP cp (Prob 37.9946)
+       Error in file pages_1654-1657_p.idx   GT p  HYP other (Prob 59.13883)
+       Error in file pages_236-241_unk.idx   GT other  HYP t (Prob 99.99872400000001)
+       Error in file pages_516-519_cp.idx   GT cp  HYP other (Prob 46.690097)
+       Error in file pages_100-101_p.idx   GT p  HYP other (Prob 99.87884)

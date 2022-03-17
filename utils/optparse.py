@@ -284,6 +284,14 @@ class Arguments(object):
                                    expected to be in --tr_data/page folder""",
         )
         train.add_argument(
+            "--prod_data",
+            default="/data/carabela/prev2/carabela_IG10KWords-SumScore.inf",
+            type=str,
+            help="""Train data folder. Train images are
+                                   expected there, also PAGE XML files are
+                                   expected to be in --tr_data/page folder""",
+        )
+        train.add_argument(
             "--checkpoint_load",
             default="",
             type=str,
@@ -305,6 +313,18 @@ class Arguments(object):
         )
         train.add_argument(
             "--LOO",
+            default="no",
+            type=self._str_to_bool,
+            help="""Leaving one out option""",
+        )
+        train.add_argument(
+            "--do_prod",
+            default="no",
+            type=self._str_to_bool,
+            help="""Leaving one out option""",
+        )
+        train.add_argument(
+            "--do_test",
             default="no",
             type=self._str_to_bool,
             help="""Leaving one out option""",

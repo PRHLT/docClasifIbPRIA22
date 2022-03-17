@@ -132,9 +132,12 @@ def load_RWs(opts):
     path_tr = opts.tr_data
     data_tr, len_feats, classes = load(path_tr)
     if not opts.LOO:
-        path_te = opts.te_data
-        data_te, _, _ = load(path_te)
-        
+        if opts.do_test:
+            path_te = opts.te_data
+            data_te, _, _ = load(path_te)
+        elif opts.do_prod:
+            path_te = opts.prod_data
+            data_te, _, _ = load(path_te)
     else:
         data_te = None
     return data_tr, data_te, len_feats, classes, class_dict, number_to_class
@@ -145,11 +148,11 @@ def get_groups(p:str, classes:list):
     f.close()
     res = []
     for line in lines:
-        c, ini, fin = line.strip().split(" ")
+        l, c, ini, fin = line.strip().split(" ")
         if c not in classes:
             continue
         ini, fin = int(ini), int(fin)
-        res.append([c, ini, fin])
+        res.append([l, c, ini, fin])
     return res
 
 def timing(f):
@@ -164,18 +167,20 @@ def timing(f):
     return wrap
 
 # @timing
-def search_group(groups:list, npage:int):
-    for c, ini, fin in groups:
+def search_group(groups:list, npage:int, l:str):
+    for lgroup, c, ini, fin in groups:
         if ini <= npage <= fin:
-            return ini, fin
+            if l == lgroup:
+                return ini, fin
     raise Exception(f'Group for {npage} not found')
 
 # @timing
-def search_pages_tfidf(data:list, ini, fin):
+def search_pages_tfidf(data:list, ini, fin, legajo:str):
     train = []
     for i in data:
-        npage = int(i[-1].split("_")[1])
-        if ini <= npage <= fin:
+        npage = int(i[-1].split("_")[2])
+        l_page = i[-1].split("_")[0]
+        if ini <= npage <= fin or legajo != l_page:
             continue
         train.append(i)
     return train
@@ -183,7 +188,7 @@ def search_pages_tfidf(data:list, ini, fin):
 
 class TextDataset(pl.LightningDataModule):
 
-    def __init__(self, train_transforms=None, val_transforms=None, test_transforms=None, dims=None, opts=None, n_test=None, info=None):
+    def __init__(self, train_transforms=None, val_transforms=None, test_transforms=None, dims=None, opts=None, n_test=None, info=None, legajo=""):
         super().__init__(train_transforms=train_transforms, val_transforms=val_transforms, test_transforms=test_transforms, dims=dims)
         # self.setup(opts)
         self.opts = opts
@@ -193,15 +198,15 @@ class TextDataset(pl.LightningDataModule):
             self.data_test = [self.data_tr_dev[n_test]]
             if opts.path_file_groups != "":
                 groups = get_groups(opts.path_file_groups, opts.classes)
-                page_test = int(self.data_test[0][-1].split("_")[1])
-                ini, fin = search_group(groups, page_test)
-                self.data_tr_dev = search_pages_tfidf(self.data_tr_dev, ini, fin)
+                page_test = int(self.data_test[0][-1].split("_")[2])
+                ini, fin = search_group(groups, page_test, legajo)
+                self.data_tr_dev = search_pages_tfidf(self.data_tr_dev, ini, fin, legajo)
                 print(f'Data: {len(self.data_tr_dev)} samples')
             else:
                 self.data_tr_dev = self.data_tr_dev[:n_test] + self.data_tr_dev[n_test+1:]
         else:
             self.data_tr_dev, self.data_test, self.len_feats, self.num_classes, self.class_dict, self.number_to_class = load_RWs(self.opts)
-   
+        # print(self.data_tr_dev)
     def setup(self, stage):
         print("-----------------------------------------------")
         

@@ -91,7 +91,16 @@ class Net(pl.LightningModule):
         # get the inputs
         x = train_batch['row']#.to(device)
         y_gt = train_batch['label']#.to(device)
+        print(x.shape)
+        bs1 = False
+        if x.shape[0] == 1:
+            print("TRUE -----------------------"*10)
+            bs1 = True
+            x = torch.cat([x,x], dim=0)
         outputs = self(x)
+        if bs1:
+            outputs = outputs[0]
+            outputs = outputs.expand(1,outputs.shape[0])
         loss = self.criterion(outputs, y_gt)
         self.log('train_loss', loss)
         self.train_acc(torch.exp(outputs), y_gt)
