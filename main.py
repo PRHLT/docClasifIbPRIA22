@@ -214,7 +214,7 @@ def main():
         path_save_remove = os.path.join(path_save, "*")
         if opts.path_file_groups == "":
             while(n_test < num_exps):
-                print(f'Exp {n_test} \ {num_exps}')
+                logger.info(f'Exp {n_test} \ {num_exps}')
                 os.system(f'rm -rf {path_save_remove}') #TODO change
                 textDataset = dataset.TextDataset(opts=opts, n_test=n_test, info=info)
                 n_test += 1
@@ -244,7 +244,7 @@ def main():
                     n_test = search_page(info[0], npage, l)
                     textDataset = dataset.TextDataset(opts=opts, n_test=n_test, info=info, legajo=l)
                     n_test += 1
-                    print(f'page: {npage} (num {n_test} in data) - {l}')
+                    logger.info(f'page: {npage} (num {n_test} in data) - {l}')
                     if npage == ini:
                         print(f'Training for the first time')
                         

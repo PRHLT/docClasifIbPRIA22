@@ -7,6 +7,8 @@ import pytorch_lightning as pl
 import numpy as np
 from functools import wraps
 from time import time
+import glob, os, pickle as pkl
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 class tDataset(Dataset):
 
@@ -57,6 +59,54 @@ class tDataset(Dataset):
 
         return sample
 
+class tLSTMDataset(Dataset):
+
+    def __init__(self, data, logger=None, transform=None, sequence=True, lime=False):
+        """
+        data es el array "data" que proviene de la funcion load que te copio aqui abajo.
+        """
+        self.logger = logger or logging.getLogger(__name__)
+        self.transform = transform
+        self.data = []
+        self.ids = []
+        self.lime = lime
+        for i in range(len(data)):
+            self.ids.append(data[i][-1])
+            self.data.append(
+                (data[i][:-2], data[i][-2]) # ([array de caracts.], clase)
+            )
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        """
+        data = [0,1,2,3,4,5,6]
+        bs = 2
+
+        2,6
+
+        get(2)
+        get(6)
+
+        """
+        data_row = self.data[idx]
+        info, labels = data_row
+        if self.lime:
+            info = torch.tensor(info, dtype=torch.float)
+            # labels = torch.tensor(int(labels))
+        else:
+            info = torch.tensor(info, dtype=torch.float)
+        labels = torch.tensor(int(labels))
+        sample = {
+            "row": info,
+            "label": labels,
+            "id": self.ids[idx],
+        }
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
 
 def load_dict_class(path):
     res = {}
@@ -98,23 +148,11 @@ def load_RWs(opts):
             feats = feats[:-1]
             feats = [float(f) for f in feats[:opts.num_feats]]
             f = np.array(feats)
-            # TODO cuidado norm
             f = f / f.sum()
-            # mean = f.mean()
-            # if mean > 0:
-            #     f = (f - mean) / f.std()
-
             if any(f < 0):
                 raise Exception("TFIDF NEGATIVO")
-                #count_mal += 1
-
             f = list(f)
-            #f = f / f.sum()
-            # print(f.sum())
-
-
             data.append(feats)
-        # print("Un total de {} legajos no tienen RWs!! -> {}".format(count_mal, labels_mal))
 
         classes = set()
         for i in range(len(labels)):
@@ -124,20 +162,62 @@ def load_RWs(opts):
         print(classes)
         len_feats = len(data[0]) - 2
         return data, len_feats, len(classes)
+    
+    def loadLSTM(path, class_dict):
+        print("Loading {}".format(path))
+        files = glob.glob(os.path.join(path, "*idx"))
+        data, labels = [], []
+        count_mal = 0
+        fnames = []
+
+        for pfile in files:
+            feats = pkl.load(open(pfile, "rb"))
+            fname = pfile.split(("/"))[-1]
+            fnames.append(fname)
+
+            label = class_dict[fname.split("_")[-1].split(".")[0]]
+            labels.append(label)
+            feats = feats[:,:opts.num_feats]
+            len_feats = len(feats[0])
+            f = np.array(feats)
+            f = (f.T / f.sum(axis=1)).T
+            if np.any(f < 0):
+                raise Exception("TFIDF NEGATIVO")
+            f = list(f)
+            feats = list(feats)
+            data.append(feats)
+
+        classes = set()
+        for i in range(len(labels)):
+            data[i].append(labels[i])
+            data[i].append(fnames[i])
+            classes.add(labels[i])
+        print(classes)
+        # len_feats = len(data[0]) - 2
+        return data, len_feats, len(classes)
 
     # Class dict
     path_class_dict = opts.class_dict
     class_dict, number_to_class = load_dict_class(path_class_dict)
 
     path_tr = opts.tr_data
-    data_tr, len_feats, classes = load(path_tr)
+    if opts.model == "MLP":
+        data_tr, len_feats, classes = load(path_tr)
+    else:
+        data_tr, len_feats, classes = loadLSTM(path_tr, class_dict)
     if not opts.LOO:
         if opts.do_test:
             path_te = opts.te_data
-            data_te, _, _ = load(path_te)
+            if opts.model == "MLP":
+                data_te, _, _ = load(path_te)
+            else:
+                data_te, _, _ = loadLSTM(path_te, class_dict)
         elif opts.do_prod:
             path_te = opts.prod_data
-            data_te, _, _ = load(path_te)
+            if opts.model == "MLP":
+                data_te, _, _ = load(path_te)
+            else:
+                data_te, _, _ = loadLSTM(path_te, class_dict)
     else:
         data_te = None
     return data_tr, data_te, len_feats, classes, class_dict, number_to_class
@@ -209,23 +289,77 @@ class TextDataset(pl.LightningDataModule):
         # print(self.data_tr_dev)
     def setup(self, stage):
         print("-----------------------------------------------")
-        
-        self.cancerDt_train = tDataset(self.data_tr_dev, transform=None)
-        self.cancerDt_val = tDataset(self.data_tr_dev, transform=None)
-        self.cancerDt_test = tDataset(self.data_test, transform=None)
-        
+        if self.opts.model == "MLP":
+            self.cancerDt_train = tDataset(self.data_tr_dev, transform=None)
+            self.cancerDt_val = tDataset(self.data_tr_dev, transform=None)
+            self.cancerDt_test = tDataset(self.data_test, transform=None)
+        else:
+            self.cancerDt_train = tLSTMDataset(self.data_tr_dev, transform=None)
+            self.cancerDt_val = tLSTMDataset(self.data_tr_dev, transform=None)
+            self.cancerDt_test = tLSTMDataset(self.data_test, transform=None)
+
     def train_dataloader(self):
-        trainloader_train = torch.utils.data.DataLoader(self.cancerDt_train, batch_size=self.opts.batch_size, shuffle=True, num_workers=0)
+        if self.opts.model == "MLP":
+            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_train, batch_size=self.opts.batch_size, shuffle=True, num_workers=0)
+        else:
+            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_train, batch_size=self.opts.batch_size, shuffle=True, num_workers=0, collate_fn=PadSequence())
+            
         return trainloader_train
     
     def val_dataloader(self):
-        trainloader_train = torch.utils.data.DataLoader(self.cancerDt_train, batch_size=self.opts.batch_size, shuffle=True, num_workers=0)
+        if self.opts.model == "MLP":
+            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_train, batch_size=self.opts.batch_size, shuffle=False, num_workers=0)
+        else:
+            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_train, batch_size=self.opts.batch_size, shuffle=False, num_workers=0, collate_fn=PadSequence())
         return trainloader_train
     
     def test_dataloader(self):
-        trainloader_train = torch.utils.data.DataLoader(self.cancerDt_test, batch_size=self.opts.batch_size, shuffle=False, num_workers=0)
+        if self.opts.model == "MLP":
+            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_test, batch_size=self.opts.batch_size, shuffle=False, num_workers=0)
+        else:
+            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_test, batch_size=self.opts.batch_size, shuffle=False, num_workers=0, collate_fn=PadSequence())
         return trainloader_train
     
     def predict_dataloader(self):
-        trainloader_train = torch.utils.data.DataLoader(self.cancerDt_test, batch_size=self.opts.batch_size, shuffle=False, num_workers=0)
+        if self.opts.model == "MLP":
+            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_test, batch_size=self.opts.batch_size, shuffle=False, num_workers=0)
+        else:
+            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_test, batch_size=self.opts.batch_size, shuffle=False, num_workers=0, collate_fn=PadSequence())
         return trainloader_train
+
+class PadSequence:
+    def __call__(self, batch):
+		# batch : "row": info,
+        # "label": labels,
+        # "id": self.ids[idx],
+        # print(batch)
+        # row = batch['row']
+        # label = batch['label']
+        # id = batch['id']
+		# Get each sequence and pad it
+        sequences = [x['row'] for x in batch]
+        labels = [x['label'] for x in batch]
+        ids = [x['id'] for x in batch]
+        ls = zip(sequences, labels, ids)
+        ls = sorted(ls, key=lambda x: x[0].shape[0], reverse=True)
+        sorted_batch, labels, ids = [], [], []
+        for s, l, i in ls:
+            sorted_batch.append(s)
+            labels.append(l)
+            ids.append(i)
+        # print(sorted_batch)
+        sequences_padded = torch.nn.utils.rnn.pad_sequence(sorted_batch, batch_first=True)
+        lengths = torch.LongTensor([len(x) for x in sorted_batch])
+        # print(lengths)
+        # print(len(sorted_batch))
+        # sorted_batch = torch.stack(sorted_batch)
+        # print(sorted_batch.shape)
+        packed_input = pack_padded_sequence(sequences_padded, lengths.cpu().numpy(), batch_first=True, enforce_sorted=False)
+        # Also need to store the length of each sequence
+		# This is later needed in order to unpad the sequences
+		# Don't forget to grab the labels of the *sorted* batch
+        labels = torch.LongTensor(labels)
+        # labels = label
+        # print(sequences_padded, lengths, labels)
+        # exit()
+        return packed_input, lengths, labels, ids

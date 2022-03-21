@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 cd ..
 trys=( 1 )
-ngfs=( 128 128,128 )
+# ngfs=( 128,128 )
+ngfs=( 0 )
 classes=P,CP,O,A,T,V,R,CEN,DP,D,C,TH,RED
 #ngfs=( 16 32,16 128,64,32  )
-numfeats=$(seq 4 15 | xargs -n 1 -I {} echo "2^"{} | bc)
+# numfeats=$(seq 4 15 | xargs -n 1 -I {} echo "2^"{} | bc)
 #ngfs=( 0 )
-# numfeats=$(seq 2 2 | xargs -n 1 -I {} echo "2^"{} | bc)
+numfeats=$(seq 2 2 | xargs -n 1 -I {} echo "2^"{} | bc)
 #res_10kwords res_10kwords_withoutNormalize res_10kwords_normRWs
 path_file_groups=/data/carabela_segmentacion/JMBD4949_4950_1page_idx/groups
 for try in $trys; do

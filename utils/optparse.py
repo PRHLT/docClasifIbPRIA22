@@ -47,9 +47,9 @@ class Arguments(object):
 
         general.add_argument(
             "--model",
-            default="dense",
+            default="MLP",
             type=str,
-            help="""dense | dense_var""",
+            help="""MLP | LSTM""",
         )
 
         general.add_argument(
