@@ -49,8 +49,8 @@ def main(path_tfidf:str, path_gruos:str, path_save:str, classes:list):
 
 
 if __name__ == "__main__":
-    path_groups = "/data/carabela_segmentacion/JMBD4949_4950_1page_idx/groups"
-    path_tfidf = "/data2/jose/projects/docClasifIbPRIA22/work_JMBD4949_4950_loo_1page/tfidf_4949_4950_loo.txt"
-    path_save = "/data/carabela_segmentacion/JMBD4949_4950_1page_idx/sequence_groups"
-    classes = [x.lower() for x in "P,CP,O,A,T,V,R,CEN,DP,D,C,TH,RED".split(",")]
+    path_groups = "/data/carabela_segmentacion/JMBD4949_1page_idx/groups"
+    path_tfidf = "/data2/jose/projects/docClasifIbPRIA22/work_JMBD4949_loo_1page/tfidf_4949_loo.txt"
+    path_save = "/data/carabela_segmentacion/JMBD4949_1page_idx/sequence_groups"
+    classes = [x.lower() for x in "P,CP,O,A,T".split(",")]
     main(path_tfidf, path_groups, path_save, classes)

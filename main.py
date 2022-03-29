@@ -231,7 +231,7 @@ def main():
 
                 # Save to file
                 y = [y[1] for y in textDataset.cancerDt_test.data][0]
-                save_to_file(textDataset, f, y, results_test)
+                save_to_file(textDataset, f, y, results_test, opts)
                 ys.append(y)
                 hyps.append(np.argmax(results_test))
                 del net
@@ -267,7 +267,7 @@ def main():
                     results_test = torch.cat(results_test, dim=0)
                     # Save to file
                     y = [y[1] for y in textDataset.cancerDt_test.data][0]
-                    save_to_file(textDataset, f, y, results_test)
+                    save_to_file(textDataset, f, y, results_test, opts)
                     ys.append(y)
                     hyps.append(np.argmax(results_test))
                 del net
@@ -314,13 +314,30 @@ def get_groups(p:str, classes:list):
         res.append([l, c, ini, fin])
     return res
 
-def save_to_file(textDataset, f, y, results_test):
+def save_to_file(textDataset, f, y, results_test, opts):
     ids = textDataset.cancerDt_test.ids[0]
     results_test = tensor_to_numpy(results_test)[0]
-    res=""
-    for s in results_test:
-        res+=" {}".format(str(s))
-    f.write("{} {}{}\n".format(ids, y, res))
+    if "voting" not in opts.model:
+        res=""
+        for s in results_test:
+            res+=" {}".format(str(s))
+        f.write("{} {}{}\n".format(ids, y, res))
+    else:
+        # JMBD4949_pages_1022-1023_p.idx
+        l, _, pages, c = ids.split("_")
+        ini, fin = pages.split("-")
+        ini, fin = int(ini), int(fin)
+        j = 0
+        for i in range(ini, fin+1):
+            results_i = results_test[j]
+            # print(l, i, results_i)
+            #JMBD4950_page_4_cp.idx 1 0.20062275 0.17206226 0.15092145 0.049790654 0.12978472 0.12793754 0.006852842 0.078733616 0.01871656 0.007054133 0.017348334 0.016604096 0.023571102
+            id_ = f'{l}_page_{i}_{c}'
+            j += 1
+            res=""
+            for s in results_i:
+                res+=" {}".format(str(s))
+            f.write("{} {}{}\n".format(id_, y, res))
     f.flush()
     
 

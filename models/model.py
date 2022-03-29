@@ -46,12 +46,15 @@ class Net(pl.LightningModule):
                 self.model = nn.Sequential(*model)
                 for param in self.model.parameters():
                     self.num_params += param.numel()
-        else:
+        elif "LSTM" in opts.model:
             self.model_lstm = nn.LSTM(len_feats, layers[0], len(layers), batch_first=True, dropout=opts.DO, bidirectional=True)
-            self.model_linear = nn.Linear(layers[0]*2*2, n_classes)        
+            if "voting" in  opts.model:
+                self.model_linear = nn.Linear(layers[0]*2, n_classes)      
+            else:
+                self.model_linear = nn.Linear(layers[0]*2*2, n_classes)     
             print(self.model_lstm)
             print(self.model_linear)
-
+        
         
         if opts.loss.lower() == "cross-entropy" or opts.loss.lower() == "cr" or opts.loss.lower() == "crossentropy":
             # AMARILLO ROJO VERDE
@@ -83,29 +86,19 @@ class Net(pl.LightningModule):
                 probs = F.log_softmax(w_final, dim=-1)
                 return probs
             return F.log_softmax(self.model(inp), dim=-1)
-        else:
+        elif "LSTM" in self.opts.model:
             x, sizes = inp
-            # print(x, sizes)
-            # print(x.shape)
             packed_output, (hn, cn) = self.model_lstm(x)
-            # print("packed_output ", packed_output)
             output, input_sizes = pad_packed_sequence(packed_output, batch_first=True)
-            # print("output -> ", output.shape)
-            
-            # output = output[:, -1, :]
-            
-            out_forward = output[:, -1, :]
-            out_reverse = output[:, 0, :]
-            output = torch.cat((out_forward, out_reverse), 1)
-            # output = output[-1]
-            # print("output* -> ", output.shape)
-            # print(output)
-            y = self.model_linear(output)
-            # print("y -> ", y.shape)
-            # print(y)
-            # exit()
-            return F.log_softmax(y, dim=-1)
-        # return self.model(inp)
+            if "voting" in self.opts.model:
+                y = self.model_linear(output)
+                return F.log_softmax(y, dim=-1)
+            else:
+                out_forward = output[:, -1, :]
+                out_reverse = output[:, 0, :]
+                output = torch.cat((out_forward, out_reverse), 1)
+                y = self.model_linear(output)
+                return F.log_softmax(y, dim=-1)
     
     def configure_optimizers(self):
         if self.opts.optim == "ADAM":
@@ -134,6 +127,16 @@ class Net(pl.LightningModule):
             bs1 = True
             x = torch.cat([x,x], dim=0)
         outputs = self(x)
+        if "voting" in self.opts.model:
+            new_gt = []
+            for i, y in enumerate(y_gt.cpu().detach().numpy()):
+                new_gt.extend([y]*lengths[i])
+            y_gt = torch.LongTensor(new_gt)
+            new_output = []
+            for i, o in enumerate(outputs):
+                slice = o[:lengths[i],:]
+                new_output.append(slice)
+            outputs = torch.concat(new_output)
         if bs1:
             outputs = outputs[0]
             outputs = outputs.expand(1,outputs.shape[0])
@@ -168,6 +171,16 @@ class Net(pl.LightningModule):
             x = (sequences_padded, lengths)
             # print("y_gt == ", y_gt.shape)
         outputs = self(x)
+        if "voting" in self.opts.model:
+            new_gt = []
+            for i, y in enumerate(y_gt.cpu().detach().numpy()):
+                new_gt.extend([y]*lengths[i])
+            y_gt = torch.LongTensor(new_gt)
+            new_output = []
+            for i, o in enumerate(outputs):
+                slice = o[:lengths[i],:]
+                new_output.append(slice)
+            outputs = torch.concat(new_output)
         loss = self.criterion(outputs, y_gt)
         self.log('val_loss', loss)
         self.val_acc(torch.exp(outputs), y_gt)
@@ -200,6 +213,16 @@ class Net(pl.LightningModule):
             sequences_padded, lengths, y_gt, ids = train_batch
             x = (sequences_padded, lengths)
         outputs = self(x)
+        if "voting" in self.opts.model:
+            new_gt = []
+            for i, y in enumerate(y_gt.cpu().detach().numpy()):
+                new_gt.extend([y]*lengths[i])
+            y_gt = torch.LongTensor(new_gt)
+            new_output = []
+            for i, o in enumerate(outputs):
+                slice = o[:lengths[i],:]
+                new_output.append(slice)
+            outputs = torch.concat(new_output)
         outputs = torch.exp(outputs)
         self.test_acc(outputs, y_gt)
         self.log('test_acc_step', self.test_acc)
