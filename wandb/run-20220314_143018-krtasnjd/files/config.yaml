@@ -1,0 +1,136 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.12.9
+    framework: huggingface
+    huggingface_version: 4.13.0
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    m:
+    - 1: trainer/global_step
+      6:
+      - 3
+    - 1: val_loss
+      5: 1
+      6:
+      - 1
+    - 1: val_acc_step
+      5: 1
+      6:
+      - 1
+    - 1: val_acc_epoch
+      5: 1
+      6:
+      - 1
+    - 1: epoch
+      5: 1
+      6:
+      - 1
+    - 1: train_acc_epoch
+      5: 1
+      6:
+      - 1
+    - 1: train_loss
+      5: 1
+      6:
+      - 1
+    - 1: train_acc_step
+      5: 1
+      6:
+      - 1
+    - 1: gradients/linear\.bias._type
+      5: 1
+      6:
+      - 1
+    - 1: gradients/linear\.bias.values
+      5: 1
+      6:
+      - 1
+    - 1: gradients/linear\.bias.bins
+      5: 1
+      6:
+      - 1
+    - 1: gradients/linear\.weight._type
+      5: 1
+      6:
+      - 1
+    - 1: gradients/linear\.weight.values
+      5: 1
+      6:
+      - 1
+    - 1: gradients/linear\.weight.bins
+      5: 1
+      6:
+      - 1
+    - 1: gradients/bn\.weight._type
+      5: 1
+      6:
+      - 1
+    - 1: gradients/bn\.weight.values
+      5: 1
+      6:
+      - 1
+    - 1: gradients/bn\.weight.bins
+      5: 1
+      6:
+      - 1
+    - 1: gradients/bn\.bias._type
+      5: 1
+      6:
+      - 1
+    - 1: gradients/bn\.bias.values
+      5: 1
+      6:
+      - 1
+    - 1: gradients/bn\.bias.bins
+      5: 1
+      6:
+      - 1
+    - 1: gradients/hidden\.bias._type
+      5: 1
+      6:
+      - 1
+    - 1: gradients/hidden\.bias.values
+      5: 1
+      6:
+      - 1
+    - 1: gradients/hidden\.bias.bins
+      5: 1
+      6:
+      - 1
+    - 1: gradients/hidden\.weight._type
+      5: 1
+      6:
+      - 1
+    - 1: gradients/hidden\.weight.values
+      5: 1
+      6:
+      - 1
+    - 1: gradients/hidden\.weight.bins
+      5: 1
+      6:
+      - 1
+    python_version: 3.8.12
+    start_time: 1647264618
+    t:
+      1:
+      - 1
+      - 5
+      - 9
+      - 11
+      2:
+      - 1
+      - 5
+      - 9
+      - 11
+      3:
+      - 1
+      - 7
+      - 17
+      4: 3.8.12
+      5: 0.12.9
+      6: 4.13.0
+      8:
+      - 5
