@@ -3,7 +3,7 @@ cd ..
 trys=( 1 )
 # ngfs=( 128,128 )
 ngfs=( 0 )
-classes=P,CP,O,A,T,V,R,CEN,DP,D,C,TH,RED
+classes=P,CP,O,A,T,V,R,CEN,DP,D,C,TH
 #ngfs=( 16 32,16 128,64,32  )
 # numfeats=$(seq 4 15 | xargs -n 1 -I {} echo "2^"{} | bc)
 #ngfs=( 0 )

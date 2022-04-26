@@ -6,7 +6,7 @@ ngfs=( 128 128,128 )
 numfeats=$(seq 8 15 | xargs -n 1 -I {} echo "2^"{} | bc)
 # numfeats=$(seq 2 2 | xargs -n 1 -I {} echo "2^"{} | bc)
 #res_10kwords res_10kwords_withoutNormalize res_10kwords_normRWs
-classes=P,CP,O,A,T,V,R,CEN,DP,D,C,TH,RED
+classes=P,CP,O,A,T,V,R,CEN,DP,D,C,TH
 for try in $trys; do
     for ngf in "${ngfs[@]}"; do
 #        for numfeat in "${numfeats[@]}"; do

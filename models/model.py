@@ -106,6 +106,8 @@ class Net(pl.LightningModule):
 
         elif self.opts.optim == "SGD":
             optimizer = optim.SGD(self.parameters(), lr=self.opts.lr, momentum=0.9, weight_decay=5*(10**-4))
+        elif self.opts.optim == "RMSprop":
+            optimizer = optim.RMSprop(self.parameters(), lr=self.opts.lr, momentum=0)
         else:
             raise Exception("Optimizer {} not implemented".format(self.opts.optim))
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=self.opts.steps, gamma=self.opts.gamma_step)

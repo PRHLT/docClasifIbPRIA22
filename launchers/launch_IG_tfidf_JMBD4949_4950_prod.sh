@@ -5,9 +5,9 @@ mkdir ${path_resultados}
 data_path=/data/carabela_segmentacion/JMBD4949_4950_idx
 data_path_prod=/data/carabela_segmentacion/JMBD4949_4950_idx/prod
 prob=0.1
-classes=P,CP,O,A,T,V,R,CEN,DP,D,C,TH,RED
+classes=P,CP,O,A,T,V,R,CEN,DP,D,C,TH
 path_res_IG=${path_resultados}/resultadosIG_4949_4950.txt
-# python infogain_compute.py --data_path ${data_path} --prob $prob --classes $classes --path_res ${path_res_IG} --all_files false
+python infogain_compute.py --data_path ${data_path} --prob $prob --classes $classes --path_res ${path_res_IG} --all_files false
 
 #### TFIDF
 path_res_train=${path_resultados}/tfidf_4949_4950_prod_tr.txt

@@ -1,8 +1,8 @@
 import numpy as np
 from sklearn.metrics import accuracy_score
 
-path_file_groups = "/data/carabela_segmentacion/JMBD4949_4950_1page_idx/groups"
-path_results = "/data2/jose/projects/docClasifIbPRIA22/works_JMBD4949_4950_loo_1page/work_128_numFeat4/results.txt"
+path_file_groups = "/data/carabela_segmentacion/idxs_JMBD4949/idxs_clasif_per_page/all_classes_noS/groups"
+path_results = "/data2/jose/projects/docClasifIbPRIA22/works_JMBD4949_loo_1page_LSTMvoting/work_128,128_numFeat1024_128epochs_0.01lrRMSprop/results.txt"
 
 def read_results(p:str):
     f = open(p, "r")
@@ -18,17 +18,30 @@ def read_results(p:str):
         res[f'{l}_{page}'] = [gt,hyps]
     return res
 
-def get_groups(p:str, classes:list):
+def get_groups(p:str, classes:list, default:str="JMBD4949"):
     f = open(p, "r")
     lines = f.readlines()
     f.close()
-    res = []
+    res = set()
+    res_c = []
+    # classes = ['p']
     for line in lines:
-        l, c, ini, fin = line.strip().split(" ")
+        try:
+            l, c, ini, fin = line.strip().split(" ")
+        except:
+            c, ini, fin = line.strip().split(" ")
+            l = default
         if c not in classes:
             continue
         ini, fin = int(ini), int(fin)
-        res.append([l, c, ini, fin])
+        res.add((l, c, ini, fin))
+        res_c.append(f'{l}, {c}, {ini}, {fin}')
+    res = list(res)
+    print(np.unique(res_c,return_counts=True ))
+    # res.sort()
+    # for r in res:
+    #     print(r)
+    # exit()
     return res
 
 def voting(results:dict, groups:list):
@@ -62,6 +75,7 @@ if __name__ == "__main__":
     results = read_results(path_results)
     groups = get_groups(path_file_groups, classes)
     acc, acc_results, fallos = voting(results, groups)
+    print(f'{len(groups)} groups in file of groups')
     print(f'Voting: acc {acc}, Error: {1-acc}')
     print(f'results file: acc {acc_results}, Error: {1-acc_results}')
     # for fallo in fallos:

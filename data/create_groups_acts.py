@@ -2,13 +2,17 @@ import os, glob
 import numpy as np
 import pickle as pkl
 
-def get_groups(p:str, classes:list) -> list:
+def get_groups(p:str, classes:list, default:str="4949") -> list:
     f = open(p, "r")
     lines = f.readlines()
     f.close()
     res = []
     for line in lines:
-        l, c, ini, fin = line.strip().split(" ")
+        try:
+            l, c, ini, fin = line.strip().split(" ")
+        except:
+            c, ini, fin = line.strip().split(" ")
+            l = default
         if c not in classes:
             continue
         ini, fin = int(ini), int(fin)
@@ -30,13 +34,17 @@ def create_group(l, c, ini, fin, tfidf_file:dict):
     tfidfs = []
     for i in range(ini, fin+1):
         vector_tfidf = tfidf_file.get(f'{l}_page_{i}_{c}.idx')
+        if vector_tfidf is None:
+            vector_tfidf = tfidf_file.get(f'page_{i}_{c}.idx')
+            if vector_tfidf is None:
+                raise Exception("vector_tfidf is None")
         tfidfs.append(vector_tfidf)
     return np.array(tfidfs, np.float32)
 
 
-def main(path_tfidf:str, path_gruos:str, path_save:str, classes:list):
+def main(path_tfidf:str, path_gruos:str, path_save:str, classes:list, default:str):
     tfidf_file = read_tfidf_file(path_tfidf)
-    res_groups = get_groups(path_gruos, classes)
+    res_groups = get_groups(path_gruos, classes, default)
     if not os.path.exists(path_save):
         os.mkdir(path_save)
     for l, c, ini, fin in res_groups:
@@ -49,8 +57,9 @@ def main(path_tfidf:str, path_gruos:str, path_save:str, classes:list):
 
 
 if __name__ == "__main__":
-    path_groups = "/data/carabela_segmentacion/JMBD4949_1page_idx/groups"
+    default="JMBD4949"
+    path_groups = "/data/carabela_segmentacion/idxs_JMBD4949/idxs_clasif_per_page/all_classes_noS/groups"
     path_tfidf = "/data2/jose/projects/docClasifIbPRIA22/work_JMBD4949_loo_1page/tfidf_4949_loo.txt"
     path_save = "/data/carabela_segmentacion/JMBD4949_1page_idx/sequence_groups"
     classes = [x.lower() for x in "P,CP,O,A,T".split(",")]
-    main(path_tfidf, path_groups, path_save, classes)
+    main(path_tfidf, path_groups, path_save, classes, default)

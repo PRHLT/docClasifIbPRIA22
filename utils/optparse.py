@@ -184,7 +184,7 @@ class Arguments(object):
             "--optim",
             default="ADAM",
             type=str,
-            choices=["ADAM", "SGD", "MNB", "SVC", "GBC"],
+            choices=["ADAM", "SGD", "RMSprop"],
             help="""Choose the optimizer""",
         )
         optim.add_argument(

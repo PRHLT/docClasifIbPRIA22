@@ -21,7 +21,7 @@ def read_results(p:str):
     return res, hyps_, gts_
 
 if __name__ == "__main__":
-    path_results = "/data2/jose/projects/docClasifIbPRIA22/works_JMBD4949_loo_1page_LSTM/work_128,128_numFeat1024/results.txt"
+    path_results = "/data2/jose/projects/docClasifIbPRIA22/works_JMBD4949_loo_1page_LSTM/work_128,128_numFeat1024_128epochs_0.01lrADAM/results.txt"
     res, gts, hyps = read_results(path_results)
     gts = np.array(gts)
     hyps = np.array(hyps)

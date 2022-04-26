@@ -2,7 +2,7 @@ cd ..
 path_resultados=work_JMBD4949_loo_1page
 mkdir ${path_resultados}
 #### Information Gain
-data_path=/data/carabela_segmentacion/JMBD4949_1page_idx
+data_path=/data/carabela_segmentacion/idxs_JMBD4949/idxs_clasif_per_page/all_classes_noS
 prob=0.1
 classes=P,CP,O,A,T
 path_res_IG=${path_resultados}/resultadosIG_4949.txt
