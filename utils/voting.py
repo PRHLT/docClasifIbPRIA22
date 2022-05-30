@@ -2,7 +2,6 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 
 path_file_groups = "/data/carabela_segmentacion/idxs_JMBD4949/idxs_clasif_per_page/all_classes_noS/groups"
-path_results = "/data2/jose/projects/docClasifIbPRIA22/works_JMBD4949_loo_1page_LSTMvoting/work_128,128_numFeat1024_128epochs_0.01lrRMSprop/results.txt"
 
 def read_results(p:str):
     f = open(p, "r")
@@ -37,7 +36,7 @@ def get_groups(p:str, classes:list, default:str="JMBD4949"):
         res.add((l, c, ini, fin))
         res_c.append(f'{l}, {c}, {ini}, {fin}')
     res = list(res)
-    print(np.unique(res_c,return_counts=True ))
+    # print(np.unique(res_c,return_counts=True ))
     # res.sort()
     # for r in res:
     #     print(r)
@@ -71,12 +70,17 @@ def voting(results:dict, groups:list):
     
 
 if __name__ == "__main__":
-    classes = ["p","cp","o","a","t"]
-    results = read_results(path_results)
-    groups = get_groups(path_file_groups, classes)
-    acc, acc_results, fallos = voting(results, groups)
-    print(f'{len(groups)} groups in file of groups')
-    print(f'Voting: acc {acc}, Error: {1-acc}')
-    print(f'results file: acc {acc_results}, Error: {1-acc_results}')
-    # for fallo in fallos:
-    #     print(fallo)
+    nmb_feats = [2**x for x in range(7,11)]
+    # path_results_ = [f"/data2/jose/projects/docClasifIbPRIA22/works_JMBD4949_loo_1page_LSTMvoting/work_128,128_numFeat{x}_128epochs_0.01lrADAM/results.txt" for x in nmb_feats]
+    for x in nmb_feats:
+        path_results = f"/data2/jose/projects/docClasifIbPRIA22/works_JMBD4949_loo_1page_LSTMvoting/work_128,128_numFeat{x}_128epochs_0.01lrADAM/results.txt"
+        classes = ["p","cp","o","a","t"]
+        results = read_results(path_results)
+        groups = get_groups(path_file_groups, classes)
+        acc, acc_results, fallos = voting(results, groups)
+        # print(f'{len(groups)} groups in file of groups')
+        print(f"--- NumFeats {x}")
+        print(f'Error without voting : {1-acc_results}')
+        print(f'Voting Error: {1-acc}')
+        # for fallo in fallos:
+        #     print(fallo)

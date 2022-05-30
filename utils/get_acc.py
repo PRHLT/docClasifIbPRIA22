@@ -21,10 +21,16 @@ def read_results(p:str):
     return res, hyps_, gts_
 
 if __name__ == "__main__":
-    path_results = "/data2/jose/projects/docClasifIbPRIA22/works_JMBD4949_loo_1page_LSTM/work_128,128_numFeat1024_128epochs_0.01lrADAM/results.txt"
-    res, gts, hyps = read_results(path_results)
-    gts = np.array(gts)
-    hyps = np.array(hyps)
-    acc = (gts == hyps).sum() / hyps.shape[0]
-    print(f'Error {1-acc} from {len(hyps)} samples')
+    # path_results = "/data2/jose/projects/docClasifIbPRIA22/works_JMBD4949_loo_1page_LSTM/work_128,128_numFeat1024_128epochs_0.01lrADAM/results.txt"
+    tr = "tr49"
+    nmb_feats = [2**x for x in range(3,12)]
+    layers="128,128"
+    print(f"TRAINING WITH {tr}")
+    for feats in nmb_feats:
+        path_results = f"/data2/jose/projects/docClasifIbPRIA22/works_IMF/work_tr49_{layers}_numFeat{feats}/results.txt"
+        res, gts, hyps = read_results(path_results)
+        gts = np.array(gts)
+        hyps = np.array(hyps)
+        acc = (gts == hyps).sum() / hyps.shape[0]
+        print(f'{feats} feats Error {1-acc} from {len(hyps)} samples')
     
