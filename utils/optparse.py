@@ -318,6 +318,12 @@ class Arguments(object):
             help="""Leaving one out option""",
         )
         train.add_argument(
+            "--auto_lr_find",
+            default="no",
+            type=self._str_to_bool,
+            help="""Leaving one out option""",
+        )
+        train.add_argument(
             "--do_prod",
             default="no",
             type=self._str_to_bool,

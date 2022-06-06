@@ -229,7 +229,7 @@ if __name__ == "__main__":
     
     if args.path_res_prod != "":
         #CÁLCULO TF TEST:
-        print('CALCULANDO EL VECTOR TF.IDF DE TEST')
+        print('CALCULANDO EL VECTOR TF.IDF DE PROD')
         # carpeta = '/Users/Juanjo Flores/OneDrive/Desktop/Clasificación de imágenes con RNN/code/leave_one_out/all_samples_4950'
         carpeta = args.data_path_prod
         # directorio  = os.listdir(carpeta)

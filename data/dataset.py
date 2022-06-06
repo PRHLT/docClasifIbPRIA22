@@ -12,7 +12,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 class tDataset(Dataset):
 
-    def __init__(self, data, logger=None, transform=None, sequence=True, lime=False):
+    def __init__(self, data, logger=None, transform=None, sequence=True, lime=False, prod=False):
         """
         data es el array "data" que proviene de la funcion load que te copio aqui abajo.
         """
@@ -23,9 +23,14 @@ class tDataset(Dataset):
         self.lime = lime
         for i in range(len(data)):
             self.ids.append(data[i][-1])
-            self.data.append(
-                (data[i][:-2], data[i][-2]) # ([array de caracts.], clase)
-            )
+            if not prod:
+                self.data.append(
+                    (data[i][:-2], data[i][-2]) # ([array de caracts.], clase)
+                )
+            else:
+                self.data.append(
+                    (data[i][:-2], -1) # ([array de caracts.], clase)
+                )
 
     def __len__(self):
         return len(self.data)
@@ -69,9 +74,11 @@ class tLSTMDataset(Dataset):
         self.transform = transform
         self.data = []
         self.ids = []
+        self.lengths = []
         self.lime = lime
         for i in range(len(data)):
             self.ids.append(data[i][-1])
+            self.lengths.append(len(data[i][:-2]))
             self.data.append(
                 (data[i][:-2], data[i][-2]) # ([array de caracts.], clase)
             )
@@ -122,7 +129,7 @@ def load_dict_class(path):
         number_to_class[c] = legajo
     return res, number_to_class
 
-def load_RWs(opts):
+def load_RWs(opts, prod=False):
     """
     # Expd-ID		  10k feats LABEL
     :param opts:
@@ -149,6 +156,7 @@ def load_RWs(opts):
             feats = [float(f) for f in feats[:opts.num_feats]]
             f = np.array(feats)
             f = f / f.sum()
+            # print(fname, np.mean(feats), f.mean())
             if any(f < 0):
                 raise Exception("TFIDF NEGATIVO")
             f = list(f)
@@ -195,6 +203,15 @@ def load_RWs(opts):
         print(classes)
         # len_feats = len(data[0]) - 2
         return data, len_feats, len(classes)
+    
+    if prod:
+        path_prod = opts.prod_data
+        if opts.model == "MLP":
+            data_prod, _, _ = load(path_prod)
+        else:
+            # TODO delete class_dict for prod
+            data_prod, _, _ = loadLSTM(path_prod, class_dict)
+        return data_prod
 
     # Class dict
     path_class_dict = opts.class_dict
@@ -212,14 +229,16 @@ def load_RWs(opts):
                 data_te, _, _ = load(path_te)
             else:
                 data_te, _, _ = loadLSTM(path_te, class_dict)
-        elif opts.do_prod:
-            path_te = opts.prod_data
-            if opts.model == "MLP":
-                data_te, _, _ = load(path_te)
-            else:
-                data_te, _, _ = loadLSTM(path_te, class_dict)
+                # [print(x[-1], x[-2]) for x in data_te]
+        # elif opts.do_prod:
+        #     path_te = opts.prod_data
+        #     if opts.model == "MLP":
+        #         data_te, _, _ = load(path_te)
+        #     else:
+        #         data_te, _, _ = loadLSTM(path_te, class_dict)
     else:
         data_te = None
+    
     return data_tr, data_te, len_feats, classes, class_dict, number_to_class
 
 def get_groups(p:str, classes:list):
@@ -272,6 +291,8 @@ class TextDataset(pl.LightningDataModule):
         super().__init__(train_transforms=train_transforms, val_transforms=val_transforms, test_transforms=test_transforms, dims=dims)
         # self.setup(opts)
         self.opts = opts
+        self.train_transforms = train_transforms
+        self.val_transforms = val_transforms
         
         if opts.LOO:
             self.data_tr_dev, self.data_test, self.len_feats, self.num_classes, self.class_dict, self.number_to_class = info
@@ -286,17 +307,24 @@ class TextDataset(pl.LightningDataModule):
                 self.data_tr_dev = self.data_tr_dev[:n_test] + self.data_tr_dev[n_test+1:]
         else:
             self.data_tr_dev, self.data_test, self.len_feats, self.num_classes, self.class_dict, self.number_to_class = load_RWs(self.opts)
+            if self.opts.do_prod:
+                self.data_prod = load_RWs(self.opts, prod=True)
+
         # print(self.data_tr_dev)
     def setup(self, stage):
         print("-----------------------------------------------")
         if self.opts.model == "MLP":
-            self.cancerDt_train = tDataset(self.data_tr_dev, transform=None)
-            self.cancerDt_val = tDataset(self.data_tr_dev, transform=None)
+            self.cancerDt_train = tDataset(self.data_tr_dev, transform=self.train_transforms)
+            self.cancerDt_val = tDataset(self.data_tr_dev, transform=self.val_transforms)
             self.cancerDt_test = tDataset(self.data_test, transform=None)
+            if self.opts.do_prod:
+                self.cancerDt_prod = tDataset(self.data_prod, transform=None, prod=True)
         else:
-            self.cancerDt_train = tLSTMDataset(self.data_tr_dev, transform=None)
-            self.cancerDt_val = tLSTMDataset(self.data_tr_dev, transform=None)
+            self.cancerDt_train = tLSTMDataset(self.data_tr_dev, transform=self.train_transforms)
+            self.cancerDt_val = tLSTMDataset(self.data_tr_dev, transform=self.val_transforms)
             self.cancerDt_test = tLSTMDataset(self.data_test, transform=None)
+            if self.opts.do_prod:
+                pass # TODO prod for LSTM models
 
     def train_dataloader(self):
         if self.opts.model == "MLP":
@@ -308,9 +336,9 @@ class TextDataset(pl.LightningDataModule):
     
     def val_dataloader(self):
         if self.opts.model == "MLP":
-            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_train, batch_size=self.opts.batch_size, shuffle=False, num_workers=0)
+            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_val, batch_size=self.opts.batch_size, shuffle=False, num_workers=0)
         else:
-            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_train, batch_size=self.opts.batch_size, shuffle=False, num_workers=0, collate_fn=PadSequence())
+            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_val, batch_size=self.opts.batch_size, shuffle=False, num_workers=0, collate_fn=PadSequence())
         return trainloader_train
     
     def test_dataloader(self):
@@ -322,9 +350,9 @@ class TextDataset(pl.LightningDataModule):
     
     def predict_dataloader(self):
         if self.opts.model == "MLP":
-            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_test, batch_size=self.opts.batch_size, shuffle=False, num_workers=0)
+            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_prod, batch_size=self.opts.batch_size, shuffle=False, num_workers=0)
         else:
-            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_test, batch_size=self.opts.batch_size, shuffle=False, num_workers=0, collate_fn=PadSequence())
+            trainloader_train = torch.utils.data.DataLoader(self.cancerDt_prod, batch_size=self.opts.batch_size, shuffle=False, num_workers=0, collate_fn=PadSequence())
         return trainloader_train
 
 class PadSequence:
@@ -362,4 +390,5 @@ class PadSequence:
         # labels = label
         # print(sequences_padded, lengths, labels)
         # exit()
+        # print(lengths, labels, ids)
         return packed_input, lengths, labels, ids

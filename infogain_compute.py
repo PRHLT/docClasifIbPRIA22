@@ -173,7 +173,8 @@ if __name__ == "__main__":
                 else:
                     p_c_notv[c,word] = m_c[c]/(len(m))
             else:
-                p_c_notv[c,word] = m_c[c]/(len(m)-f_tv[word])
+                divisor = max(0.00000001, (len(m)-f_tv[word]))
+                p_c_notv[c,word] = m_c[c]/divisor
             p_c_notv[c,word] = max(0.0, p_c_notv[c,word])
     
     print('CALCULANDO EL INFORMATION GAIN DE CADA PALABRA')
@@ -184,6 +185,8 @@ if __name__ == "__main__":
         r2 = 0
         r3 = 0
         for c in clases:
+            if not p_c[c]:
+                p_c[c] += 0.000000000000000000000000001
             r1 += p_c[c]*math.log(p_c[c])
             if (c,word) in p_c_tv and p_c_tv[c,word] != 0.0:
                 r2 += p_c_tv[c,word]*math.log(p_c_tv[c,word])

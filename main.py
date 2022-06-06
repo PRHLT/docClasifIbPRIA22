@@ -19,11 +19,15 @@ import random
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import CSVLogger
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.callbacks.stochastic_weight_avg import StochasticWeightAveraging
 import wandb
 from utils.voting import voting
+from torchvision import transforms
+from data import transforms as data_transforms
 
 torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
+# torch.backends.cudnn.benchmark = False
 
 def acc_on_nbest(gts, hyps, n=5):
     res = []
@@ -53,24 +57,32 @@ def save_results_eval(results_tests, dir, logger, number_to):
             f.write("{} {} {} {}\n".format(id_x, c, gt_01, p_hyp))
     f.close()
 
-def save_results(dataset, tensor, opts):
+def save_results(dataset, tensor, opts, _name="", ids=None, ys=None):
     outputs = tensor_to_numpy(tensor)
     class_dict, number_to_class = load_dict_class(opts.class_dict)
     dir = opts.work_dir
     create_dir(dir)
-    fname = os.path.join(dir, "results.txt")
+    fname = os.path.join(dir, f"results{_name}.txt")
     f = open(fname, "w")
     f.write("Legajo GT(index) Softmax")
     for i in range(len(number_to_class)):
         f.write(f' {number_to_class[i]}')
     f.write("\n")
-    ys = [y[1] for y in dataset.data]
-    for id_x, label, prediction in zip(dataset.ids, ys, outputs):
+    if dataset is not None:
+        ids = dataset.ids
+        ys = [y[1] for y in dataset.data]
+
+    sum_ = 0
+    for id_x, label, prediction in zip(ids, ys, outputs):
         res=""
+        p = np.argmax(prediction)
+        sum_ += label != p
+        # prediction[label] = 1
         for s in prediction:
             res+=" {}".format(str(s))
         f.write("{} {}{}\n".format(id_x, label, res))
     f.close()
+    print(f"Error save_results {sum_} errors - {(sum_/len(outputs))*100.0}")
 
 def save_results_per_class(results_tests, dir, logger):
     create_dir(dir)
@@ -174,28 +186,69 @@ def main():
             "num_feats": opts.num_feats,
         }
         wandb_logger = WandbLogger(project=opts.exp_name)
-        textDataset = dataset.TextDataset(opts=opts)
-        net = models.Net(layers=opts.layers, len_feats=textDataset.len_feats, n_classes=textDataset.num_classes, opts=opts)
+        # train_transforms = transforms.Compose([data_transforms.Addnoise(k=50)])
+        # val_transforms = train_transforms
+        train_transforms, val_transforms = None, None
+        textDataset = dataset.TextDataset(opts=opts, train_transforms=train_transforms, val_transforms=val_transforms)
+        net = models.Net(layers=opts.layers, len_feats=textDataset.len_feats, n_classes=len(opts.classes), opts=opts)
+        print(net)
         if opts.checkpoint_load:
-            net = net.load_from_checkpoint(opts.checkpoint_load, layers=opts.layers, len_feats=textDataset.len_feats, n_classes=textDataset.num_classes, opts=opts)
+            net = net.load_from_checkpoint(opts.checkpoint_load, layers=opts.layers, len_feats=textDataset.len_feats, n_classes=len(opts.classes), opts=opts)
         net.to(device)
         wandb_logger.watch(net)
-        trainer = pl.Trainer(min_epochs=opts.epochs, max_epochs=opts.epochs, logger=[logger_csv, wandb_logger], #wandb_logger
+        early_stop_callback = EarlyStopping(monitor="val_epoch_loss", min_delta=0.00, patience=50, verbose=True, mode="max")
+        trainer = pl.Trainer(min_epochs=20, max_epochs=opts.epochs, logger=[logger_csv, wandb_logger], #wandb_logger
                 deterministic=True if opts.seed is not None else False,
                 default_root_dir=path_save,
+                auto_lr_find=opts.auto_lr_find,
+                benchmark=True,
+                # amp_level="03",
+                # amp_backend='apex',
+                gradient_clip_val=0.2,
+                # auto_scale_batch_size="power",
+                callbacks=[early_stop_callback, 
+                    StochasticWeightAveraging(
+                        swa_epoch_start = 1,
+                        # swa_lrs: Optional[Union[float, List[float]]] = None,
+                        annealing_epochs= 3,
+                        annealing_strategy = "cos",
+                        # swa_lrs=1e-2
+                    )
+                ]
             )
+        if opts.do_train and opts.auto_lr_find:
+            logger.info("auto_lr_find ON - Tuning the model")
+            trainer.tune(net, textDataset)
+            logger.info("Model tunned")
+        
         if opts.do_train:
             trainer.fit(net, textDataset)
+            
         if opts.do_test:
             results_test = trainer.test(net, textDataset)
-            results_test = trainer.predict(net, textDataset)
-            results_test = torch.cat(results_test, dim=0)
-            # print(results_test)
-        elif opts.do_prod:
+            logger.info(results_test)
+            if "voting" in opts.model:
+                results_test = trainer.predict(net, textDataset.test_dataloader())
+                outputs, gts, ids = [], [], []
+                for x in results_test:
+                    o = tensor_to_numpy(x['outputs'])
+                    outputs.extend(o)
+                    # print(x['y_gt'], len(x['y_gt']))
+                    # print(x['ids'], len(x['ids']))
+                    # exit()
+                    gts.extend(x['y_gt']) 
+                    ids.extend(x['ids'])
+                outputs = torch.from_numpy(np.array(outputs))
+                save_results(None, outputs, opts, ids=ids, ys=gts)
+            else:
+                results_test = trainer.predict(net, textDataset.test_dataloader())
+                results_test = torch.cat(results_test, dim=0)
+                save_results(textDataset.cancerDt_test, results_test, opts,)
+        if opts.do_prod:
             # results_test = trainer.test(net, textDataset)
-            results_test = trainer.predict(net, textDataset)
-            results_test = torch.cat(results_test, dim=0)
-        save_results(textDataset.cancerDt_test, results_test, opts)
+            results_prod = trainer.predict(net, textDataset)
+            results_prod = torch.cat(results_prod, dim=0)
+            save_results(textDataset.cancerDt_prod, results_prod, opts, _name="_prod")
     else:
         n_test, num_exps = 0, 90000
         info = dataset.load_RWs(opts) #data_tr_dev, data_test, len_feats, num_classes, class_dict, number_to_class

@@ -15,6 +15,7 @@ class Net(pl.LightningModule):
         self.opts = opts
         self.layers = layers
         self.num_params = 0
+        self.batch_size = opts.batch_size
         if opts.model == "MLP":
             if layers == [0]:
                 model = [nn.Linear((len_feats), n_classes)]
@@ -66,6 +67,7 @@ class Net(pl.LightningModule):
         self.train_acc = torchmetrics.Accuracy()
         self.val_acc = torchmetrics.Accuracy()
         self.test_acc = torchmetrics.Accuracy()
+        self.lr = self.opts.lr
 
     def forward(self, inp):
         """
@@ -102,12 +104,12 @@ class Net(pl.LightningModule):
     
     def configure_optimizers(self):
         if self.opts.optim == "ADAM":
-            optimizer = optim.Adam(self.parameters(), lr=self.opts.lr, betas=(self.opts.adam_beta1, self.opts.adam_beta2))
+            optimizer = optim.Adam(self.parameters(), lr=self.lr, betas=(self.opts.adam_beta1, self.opts.adam_beta2))
 
         elif self.opts.optim == "SGD":
-            optimizer = optim.SGD(self.parameters(), lr=self.opts.lr, momentum=0.9, weight_decay=5*(10**-4))
+            optimizer = optim.SGD(self.parameters(), lr=self.lr, momentum=0.9, weight_decay=5*(10**-4))
         elif self.opts.optim == "RMSprop":
-            optimizer = optim.RMSprop(self.parameters(), lr=self.opts.lr, momentum=0)
+            optimizer = optim.RMSprop(self.parameters(), lr=self.lr, momentum=0)
         else:
             raise Exception("Optimizer {} not implemented".format(self.opts.optim))
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=self.opts.steps, gamma=self.opts.gamma_step)
@@ -153,12 +155,16 @@ class Net(pl.LightningModule):
         self.log('train_acc_epoch', self.train_acc)
         outputs = []
         gts = []
+        losses = []
         for x in outs:
             o = x['outputs']
             # print(o.shape)
             outputs.extend(torch.argmax(torch.exp(o), dim=-1))
             gts.extend(x['y_gt']) 
-        
+            l = x['loss']
+            losses.append(l)
+        l = torch.mean(torch.Tensor(l))
+        self.log('train_epoch_loss', l)
         outputs = torch.Tensor(outputs)   
         gts = torch.Tensor(gts)   
         acc = (outputs == gts).sum() / gts.size(0)
@@ -192,15 +198,18 @@ class Net(pl.LightningModule):
     def validation_epoch_end(self, outs):
         # log epoch metric
         self.log('val_acc_epoch', self.val_acc)
-        print("self.val_acc ", self.val_acc)
         outputs = []
         gts = []
+        losses = []
         for x in outs:
+            l = x['loss']
             o = x['outputs']
             # print(o.shape)
             outputs.extend(torch.argmax(torch.exp(o), dim=-1))
             gts.extend(x['y_gt']) 
-        
+            losses.append(l)
+        l = torch.mean(torch.Tensor(l))
+        self.log('val_epoch_loss', l)
         outputs = torch.Tensor(outputs)   
         gts = torch.Tensor(gts)   
         acc = (outputs == gts).sum() / gts.size(0)
@@ -226,6 +235,9 @@ class Net(pl.LightningModule):
                 new_output.append(slice)
             outputs = torch.concat(new_output)
         outputs = torch.exp(outputs)
+        # print(torch.argmax(outputs, dim=1), y_gt)
+        acc = (torch.argmax(outputs, dim=1) == y_gt).sum() / y_gt.size(0)
+        # print("Acc Test epoch: ", acc, y_gt.shape)
         self.test_acc(outputs, y_gt)
         self.log('test_acc_step', self.test_acc)
         return {'outputs': outputs, 'y_gt':y_gt}
@@ -257,8 +269,56 @@ class Net(pl.LightningModule):
             sequences_padded, lengths, y_gt, ids = train_batch
             x = (sequences_padded, lengths)
         outputs = self(x)
+
+        if "voting" in self.opts.model:
+            new_gt = []
+            for i, y in enumerate(y_gt.cpu().detach().numpy()):
+                new_gt.extend([y]*lengths[i])
+            y_gt = torch.LongTensor(new_gt)
+            new_output = []
+            for i, o in enumerate(outputs):
+                slice = o[:lengths[i],:]
+                new_output.append(slice)
+            outputs = torch.concat(new_output)
+
+            last_ids, last_ys = ids, y_gt
+            # Expand
+            ids, ys = [], []
+            for i in range(len(last_ids)):
+
+                id_i = last_ids[i]
+                length_i = lengths[i]
+                y_i = last_ys[i]
+                for j in range(length_i):
+                    #Ej: JMBD4950_page_396_other.idx
+                    l, _, range_p, c = id_i.split("_")
+                    pini = int(range_p.split("-")[0]) + j
+                    c = c.split(".")[0]
+                    ys.append(y_i)
+                    ids.append(f'{l}_page_{pini}_{c}.idx')
+            # print(ids)
+            # exit()
+            # print(outputs.shape)
+            # print(len(ys))
+            # ys_tensor = torch.Tensor(ys)
+            argmax_outputs = torch.argmax(outputs, dim=1)
+            acc = (argmax_outputs == y_gt).sum() / y_gt.size(0)
+            ys = y_gt
+        #     print(ids)
+        #     print(y_gt)
+        #     print("Acc perpage predict epoch: ", acc, y_gt.shape)
+        argmax_outputs = torch.argmax(outputs, dim=1)
+        # print("outputs", argmax_outputs, argmax_outputs.shape)
+        # print("y_gt", y_gt)
+        # print("ys", ys)
+        acc = (torch.argmax(outputs, dim=1) == y_gt).sum() / y_gt.size(0)
+        # print("Acc predict epoch: ", acc, y_gt.shape)
+        # print(y_gt[0])
         outputs = torch.exp(outputs)
-        return outputs
+        if "voting" in self.opts.model:
+            return {'outputs': outputs, 'y_gt':ys, 'ids':ids} # outputs, ids, ys
+        else:
+            return outputs
 
 
 class NetLIME(nn.Module):
