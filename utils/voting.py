@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.metrics import accuracy_score
 
+# path_file_groups = "/data/carabela_segmentacion/idxs_JMBD4950/idxs_clasif_per_page/all_classes_noS/groups"
 path_file_groups = "/data/carabela_segmentacion/idxs_JMBD4950/idxs_clasif_per_page/all_classes_noS/groups"
 
 def read_results(p:str):

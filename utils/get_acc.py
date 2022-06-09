@@ -24,11 +24,11 @@ def read_results(p:str):
 
 if __name__ == "__main__":
     # path_results = "/data2/jose/projects/docClasifIbPRIA22/works_JMBD4949_loo_1page_LSTM/work_128,128_numFeat1024_128epochs_0.01lrADAM/results.txt"
-    # tr = "tr49"; te = "te50"
-    tr = "tr50"; te = "te49"
+    tr = "tr49"; te = "te50"
+    # tr = "tr50"; te = "te49"
     nmb_feats = [2**x for x in range(7,15)]
     layers_list=["0", "128", "128,128"]
-    work_dir = f"works_{tr}_{te}_groups_12classes"
+    work_dir = f"works_{tr}_{te}_groups_11classes_other"
     # work_dir = f"works_{tr}_{te}_perPage_LSTMvoting"
     for layers in layers_list:
         print(f"TRAINING WITH {tr} - layers {layers}")

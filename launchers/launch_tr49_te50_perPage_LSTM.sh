@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 cd ..
 trys=( 1 )
-ngfs=( 2 256 512 1024 )
+ngfs=( 128,128 )
 # ngfs=( 0 )
 # classes=P,CP,O,A,T
 classes=P,CP,O,A,T,V,R,CEN,DP,D,C,TH,other

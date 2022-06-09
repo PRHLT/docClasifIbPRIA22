@@ -279,8 +279,26 @@ def main():
                     )
                 trainer.fit(net, textDataset)
                 results_test = trainer.test(net, textDataset)
-                results_test = trainer.predict(net, textDataset)
-                results_test = torch.cat(results_test, dim=0)
+                if "voting" in opts.model:
+                    results_test = trainer.predict(net, textDataset.test_dataloader())
+                    outputs, gts, ids = [], [], []
+                    for x in results_test:
+                        o = tensor_to_numpy(x['outputs'])
+                        outputs.extend(o)
+                        # print(x['y_gt'], len(x['y_gt']))
+                        # print(x['ids'], len(x['ids']))
+                        # exit()
+                        gts.extend(x['y_gt']) 
+                        ids.extend(x['ids'])
+                    outputs = torch.from_numpy(np.array(outputs))
+                    # save_results(None, outputs, opts, ids=ids, ys=gts)
+                else:
+                    results_test = trainer.predict(net, textDataset.test_dataloader())
+                    results_test = torch.cat(results_test, dim=0)
+                    # save_results(textDataset.cancerDt_test, results_test, opts,)
+                # results_test = trainer.predict(net, textDataset.test_dataloader())
+                
+                # results_test = torch.cat(results_test, dim=0)
 
                 # Save to file
                 y = [y[1] for y in textDataset.cancerDt_test.data][0]
@@ -316,7 +334,7 @@ def main():
                     else:
                         print(f'Using already trained model')
                     results_test = trainer.test(net, textDataset)
-                    results_test = trainer.predict(net, textDataset)
+                    results_test = trainer.predict(net, textDataset.test_dataloader())
                     results_test = torch.cat(results_test, dim=0)
                     # Save to file
                     y = [y[1] for y in textDataset.cancerDt_test.data][0]
@@ -370,11 +388,14 @@ def get_groups(p:str, classes:list):
 def save_to_file(textDataset, f, y, results_test, opts):
     ids = textDataset.cancerDt_test.ids[0]
     results_test = tensor_to_numpy(results_test)[0]
+    # print("save to file ", opts.model)
     if "voting" not in opts.model:
         res=""
         for s in results_test:
             res+=" {}".format(str(s))
-        f.write("{} {}{}\n".format(ids, y, res))
+        s = "{} {}{}\n".format(ids, y, res)
+        print(s)
+        f.write(s)
     else:
         # JMBD4949_pages_1022-1023_p.idx
         l, _, pages, c = ids.split("_")
@@ -390,7 +411,8 @@ def save_to_file(textDataset, f, y, results_test, opts):
             res=""
             for s in results_i:
                 res+=" {}".format(str(s))
-            f.write("{} {}{}\n".format(id_, y, res))
+            s = "{} {}{}\n".format(id_, y, res)
+            f.write(s)
     f.flush()
     
 

@@ -140,7 +140,7 @@ class Net(pl.LightningModule):
             for i, o in enumerate(outputs):
                 slice = o[:lengths[i],:]
                 new_output.append(slice)
-            outputs = torch.concat(new_output)
+            outputs = torch.cat(new_output)
         if bs1:
             outputs = outputs[0]
             outputs = outputs.expand(1,outputs.shape[0])
@@ -188,7 +188,7 @@ class Net(pl.LightningModule):
             for i, o in enumerate(outputs):
                 slice = o[:lengths[i],:]
                 new_output.append(slice)
-            outputs = torch.concat(new_output)
+            outputs = torch.cat(new_output)
         loss = self.criterion(outputs, y_gt)
         self.log('val_loss', loss)
         self.val_acc(torch.exp(outputs), y_gt)
@@ -233,7 +233,7 @@ class Net(pl.LightningModule):
             for i, o in enumerate(outputs):
                 slice = o[:lengths[i],:]
                 new_output.append(slice)
-            outputs = torch.concat(new_output)
+            outputs = torch.cat(new_output)
         outputs = torch.exp(outputs)
         # print(torch.argmax(outputs, dim=1), y_gt)
         acc = (torch.argmax(outputs, dim=1) == y_gt).sum() / y_gt.size(0)
@@ -279,7 +279,7 @@ class Net(pl.LightningModule):
             for i, o in enumerate(outputs):
                 slice = o[:lengths[i],:]
                 new_output.append(slice)
-            outputs = torch.concat(new_output)
+            outputs = torch.cat(new_output)
 
             last_ids, last_ys = ids, y_gt
             # Expand

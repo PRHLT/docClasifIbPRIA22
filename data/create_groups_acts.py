@@ -71,19 +71,28 @@ if __name__ == "__main__":
 
     default="JMBD4949"
     other=True
-    path_groups = "/data/carabela_segmentacion/idxs_JMBD4949/idxs_clasif_per_page/all_classes_noS/groups"
-    path_tfidf = "/data2/jose/projects/docClasifIbPRIA22/work_tr49_te50_perPage/tfidf_tr49.txt"
-    path_save = "/home/jose/projects/docClasifIbPRIA22/work_tr49_te50_perPage/sequence_groups_tr49"
+    path_groups = "../work_JMBD4949_4950_loo_1page_other/groups"
+    path_tfidf = "../work_JMBD4949_4950_loo_1page_other/tfidf_4949_4950_loo.txt"
+    path_save = "../work_JMBD4949_4950_loo_1page_other/sequence_groups"
     classes = [x.lower() for x in "P,CP,O,A,T,V,R,CEN,DP,D,C,TH".split(",")]
     main(path_tfidf, path_groups, path_save, classes, default,other=other)
 
-    default="JMBD4950"
-    other=True
-    path_groups = "/data/carabela_segmentacion/idxs_JMBD4950/idxs_clasif_per_page/all_classes_noS/groups"
-    path_tfidf = "/data2/jose/projects/docClasifIbPRIA22/work_tr49_te50_perPage/tfidf_te50.txt"
-    path_save = "/home/jose/projects/docClasifIbPRIA22/work_tr49_te50_perPage/sequence_groups_te50"
-    classes = [x.lower() for x in "P,CP,O,A,T,V,R,CEN,DP,D,C,TH".split(",")]
-    main(path_tfidf, path_groups, path_save, classes, default,other=other)
+
+    # default="JMBD4949"
+    # other=True
+    # path_groups = "/data/carabela_segmentacion/idxs_JMBD4949/idxs_clasif_per_page/all_classes_noS/groups"
+    # path_tfidf = "/data2/jose/projects/docClasifIbPRIA22/work_tr49_te50_perPage/tfidf_tr49.txt"
+    # path_save = "/home/jose/projects/docClasifIbPRIA22/work_tr49_te50_perPage/sequence_groups_tr49"
+    # classes = [x.lower() for x in "P,CP,O,A,T,V,R,CEN,DP,D,C,TH".split(",")]
+    # main(path_tfidf, path_groups, path_save, classes, default,other=other)
+
+    # default="JMBD4950"
+    # other=True
+    # path_groups = "/data/carabela_segmentacion/idxs_JMBD4950/idxs_clasif_per_page/all_classes_noS/groups"
+    # path_tfidf = "/data2/jose/projects/docClasifIbPRIA22/work_tr49_te50_perPage/tfidf_te50.txt"
+    # path_save = "/home/jose/projects/docClasifIbPRIA22/work_tr49_te50_perPage/sequence_groups_te50"
+    # classes = [x.lower() for x in "P,CP,O,A,T,V,R,CEN,DP,D,C,TH".split(",")]
+    # main(path_tfidf, path_groups, path_save, classes, default,other=other)
 
     # default="JMBD4949"
     # other=True
