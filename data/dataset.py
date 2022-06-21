@@ -222,6 +222,7 @@ def load_RWs(opts, prod=False):
         data_tr, len_feats, classes = load(path_tr)
     else:
         data_tr, len_feats, classes = loadLSTM(path_tr, class_dict)
+    data_te = None
     if not opts.LOO:
         if opts.do_test:
             path_te = opts.te_data
@@ -230,7 +231,7 @@ def load_RWs(opts, prod=False):
             else:
                 data_te, _, _ = loadLSTM(path_te, class_dict)
                 # [print(x[-1], x[-2]) for x in data_te]
-        # elif opts.do_prod:
+        # elif opts.do_prod: #TODO te + prod?
         #     path_te = opts.prod_data
         #     if opts.model == "MLP":
         #         data_te, _, _ = load(path_te)
@@ -316,13 +317,15 @@ class TextDataset(pl.LightningDataModule):
         if self.opts.model == "MLP":
             self.cancerDt_train = tDataset(self.data_tr_dev, transform=self.train_transforms)
             self.cancerDt_val = tDataset(self.data_tr_dev, transform=self.val_transforms)
-            self.cancerDt_test = tDataset(self.data_test, transform=None)
+            if self.opts.do_test:
+                self.cancerDt_test = tDataset(self.data_test, transform=None)
             if self.opts.do_prod:
                 self.cancerDt_prod = tDataset(self.data_prod, transform=None, prod=True)
         else:
             self.cancerDt_train = tLSTMDataset(self.data_tr_dev, transform=self.train_transforms)
             self.cancerDt_val = tLSTMDataset(self.data_tr_dev, transform=self.val_transforms)
-            self.cancerDt_test = tLSTMDataset(self.data_test, transform=None)
+            if self.opts.do_test:
+                self.cancerDt_test = tLSTMDataset(self.data_test, transform=None)
             if self.opts.do_prod:
                 pass # TODO prod for LSTM models
 

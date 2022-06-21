@@ -198,7 +198,7 @@ def main():
         wandb_logger.watch(net)
         early_stop_callback = EarlyStopping(monitor="val_epoch_loss", min_delta=0.00, patience=50, verbose=True, mode="max")
         trainer = pl.Trainer(min_epochs=20, max_epochs=opts.epochs, logger=[logger_csv, wandb_logger], #wandb_logger
-                deterministic=True if opts.seed is not None else False,
+                deterministic=True if opts.seed is not None else False, auto_select_gpus=True,
                 default_root_dir=path_save,
                 auto_lr_find=opts.auto_lr_find,
                 benchmark=True,
@@ -275,7 +275,7 @@ def main():
                 net.to(device)
                 trainer = pl.Trainer(min_epochs=opts.epochs, max_epochs=opts.epochs, logger=[logger_csv], #wandb_logger
                         deterministic=True if opts.seed is not None else False,
-                        default_root_dir=path_save,
+                        default_root_dir=path_save, auto_select_gpus=True,
                     )
                 trainer.fit(net, textDataset)
                 results_test = trainer.test(net, textDataset)
@@ -327,7 +327,7 @@ def main():
                         net.to(device)
                         trainer = pl.Trainer(min_epochs=opts.epochs, max_epochs=opts.epochs, logger=[logger_csv], #wandb_logger
                             deterministic=True if opts.seed is not None else False,
-                            default_root_dir=path_save,
+                            default_root_dir=path_save, auto_select_gpus=True,
                         )
                         try:
                             trainer.fit(net, textDataset)
