@@ -23,7 +23,7 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks.stochastic_weight_avg import StochasticWeightAveraging
 import wandb
 from utils.voting import voting
-from torchvision import transforms
+# from torchvision import transforms
 from data import transforms as data_transforms
 
 torch.backends.cudnn.deterministic = True
@@ -158,7 +158,7 @@ def main():
     logger, opts = prepare()
     print(opts.work_dir)
 
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device(f"cuda:{opts.gpu}" if torch.cuda.is_available() else "cpu")
     # device = torch.device("cpu")
 
     torch.set_default_tensor_type("torch.FloatTensor")
@@ -292,6 +292,8 @@ def main():
                         ids.extend(x['ids'])
                     outputs = torch.from_numpy(np.array(outputs))
                     # save_results(None, outputs, opts, ids=ids, ys=gts)
+                    # print(outputs.shape)
+                    results_test = outputs
                 else:
                     results_test = trainer.predict(net, textDataset.test_dataloader())
                     results_test = torch.cat(results_test, dim=0)
@@ -301,7 +303,9 @@ def main():
                 # results_test = torch.cat(results_test, dim=0)
 
                 # Save to file
+                # print([y[1] for y in textDataset.cancerDt_test.data])
                 y = [y[1] for y in textDataset.cancerDt_test.data][0]
+                # print(y)
                 save_to_file(textDataset, f, y, results_test, opts)
                 ys.append(y)
                 hyps.append(np.argmax(results_test))
@@ -387,9 +391,10 @@ def get_groups(p:str, classes:list):
 
 def save_to_file(textDataset, f, y, results_test, opts):
     ids = textDataset.cancerDt_test.ids[0]
-    results_test = tensor_to_numpy(results_test)[0]
+    # results_test = tensor_to_numpy(results_test)[0]
     # print("save to file ", opts.model)
     if "voting" not in opts.model:
+        results_test = tensor_to_numpy(results_test)[0]
         res=""
         for s in results_test:
             res+=" {}".format(str(s))
@@ -397,6 +402,7 @@ def save_to_file(textDataset, f, y, results_test, opts):
         print(s)
         f.write(s)
     else:
+        results_test = tensor_to_numpy(results_test)
         # JMBD4949_pages_1022-1023_p.idx
         l, _, pages, c = ids.split("_")
         ini, fin = pages.split("-")
