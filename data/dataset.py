@@ -317,14 +317,14 @@ class TextDataset(pl.LightningDataModule):
         if self.opts.model == "MLP":
             self.cancerDt_train = tDataset(self.data_tr_dev, transform=self.train_transforms)
             self.cancerDt_val = tDataset(self.data_tr_dev, transform=self.val_transforms)
-            if self.opts.do_test:
+            if self.opts.do_test or self.opts.LOO:
                 self.cancerDt_test = tDataset(self.data_test, transform=None)
             if self.opts.do_prod:
                 self.cancerDt_prod = tDataset(self.data_prod, transform=None, prod=True)
         else:
             self.cancerDt_train = tLSTMDataset(self.data_tr_dev, transform=self.train_transforms)
             self.cancerDt_val = tLSTMDataset(self.data_tr_dev, transform=self.val_transforms)
-            if self.opts.do_test:
+            if self.opts.do_test or self.opts.LOO:
                 self.cancerDt_test = tLSTMDataset(self.data_test, transform=None)
             if self.opts.do_prod:
                 pass # TODO prod for LSTM models

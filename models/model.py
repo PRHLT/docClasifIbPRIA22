@@ -1,3 +1,4 @@
+from turtle import forward
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,6 +9,28 @@ import torch.optim as optim
 import pytorch_lightning as pl
 import torchmetrics
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+
+class OnevsAllSigmoidLoss(nn.Module):
+
+    def __init__(self, nclasses) -> None:
+        super().__init__()
+        self.nclasses = nclasses
+        self.min_value = 0.00000000000001
+    
+    def forward(self, probs , y):
+        oh = F.one_hot(y, num_classes=self.nclasses)
+        oh_negative = torch.logical_not(oh)
+        probs = torch.clamp(probs, min=self.min_value)
+        neg_probs = torch.clamp((1 - probs), min = self.min_value)
+        l = -torch.log(probs)*oh - (torch.log(neg_probs))*oh_negative
+        # if torch.any(torch.isnan(l)):
+        #     print(probs)
+        #     print(y)
+        #     print(oh)
+        #     print(l)
+        #     exit()
+        l = torch.sum(l)
+        return l
 
 class Net(pl.LightningModule):
     def __init__(self, len_feats, layers=[512,256], n_classes=3, opts=None):
@@ -56,9 +79,10 @@ class Net(pl.LightningModule):
             print(self.model_lstm)
             print(self.model_linear)
         
-        
-        if opts.loss.lower() == "cross-entropy" or opts.loss.lower() == "cr" or opts.loss.lower() == "crossentropy":
-            # AMARILLO ROJO VERDE
+        if opts.openset == "onevsall":
+            self.sigmoid = nn.Sigmoid()
+            self.criterion = OnevsAllSigmoidLoss(nclasses=n_classes)
+        elif opts.loss.lower() == "cross-entropy" or opts.loss.lower() == "cr" or opts.loss.lower() == "crossentropy":
             self.criterion = nn.NLLLoss(reduction="mean")
             # criterion = nn.CrossEntropyLoss()
         else:
@@ -68,6 +92,9 @@ class Net(pl.LightningModule):
         self.val_acc = torchmetrics.Accuracy()
         self.test_acc = torchmetrics.Accuracy()
         self.lr = self.opts.lr
+
+    def onevsall_loss(self,inp):
+        return 
 
     def forward(self, inp):
         """
@@ -84,10 +111,17 @@ class Net(pl.LightningModule):
                 hidden = relu(self.bn(prod_w0))
 
                 w_final = self.linear(hidden)
-
-                probs = F.log_softmax(w_final, dim=-1)
+                if self.opts.openset == "onevsall":
+                    probs = self.sigmoid(w_final)
+                else:
+                    probs = F.log_softmax(w_final, dim=-1)
                 return probs
-            return F.log_softmax(self.model(inp), dim=-1)
+            if self.opts.openset == "onevsall":
+                x = self.model(inp)
+                probs = self.sigmoid(x)
+            else:
+                probs = F.log_softmax(self.model(inp), dim=-1)
+            return probs
         elif "LSTM" in self.opts.model:
             x, sizes = inp
             packed_output, (hn, cn) = self.model_lstm(x)
@@ -146,7 +180,10 @@ class Net(pl.LightningModule):
             outputs = outputs.expand(1,outputs.shape[0])
         loss = self.criterion(outputs, y_gt)
         self.log('train_loss', loss)
-        self.train_acc(torch.exp(outputs), y_gt)
+        if not self.opts.openset == "onevsall":
+            self.train_acc(torch.exp(outputs), y_gt)
+        else:
+            self.train_acc(outputs, y_gt)
         self.log('train_acc_step', self.train_acc)
         return {'outputs': outputs, 'loss':loss, 'y_gt':y_gt}
     
@@ -159,7 +196,11 @@ class Net(pl.LightningModule):
         for x in outs:
             o = x['outputs']
             # print(o.shape)
-            outputs.extend(torch.argmax(torch.exp(o), dim=-1))
+            if not self.opts.openset == "onevsall":
+                aux = torch.argmax(torch.exp(o), dim=-1)
+            else:
+                aux = torch.argmax(o, dim=-1)
+            outputs.extend(aux)
             gts.extend(x['y_gt']) 
             l = x['loss']
             losses.append(l)
@@ -191,7 +232,10 @@ class Net(pl.LightningModule):
             outputs = torch.cat(new_output)
         loss = self.criterion(outputs, y_gt)
         self.log('val_loss', loss)
-        self.val_acc(torch.exp(outputs), y_gt)
+        if not self.opts.openset == "onevsall":
+            self.val_acc(torch.exp(outputs), y_gt)
+        else:
+            self.val_acc(outputs, y_gt)
         self.log('val_acc_step', self.val_acc)
         return {'outputs': outputs, 'loss':loss, 'y_gt':y_gt}
     
@@ -205,7 +249,11 @@ class Net(pl.LightningModule):
             l = x['loss']
             o = x['outputs']
             # print(o.shape)
-            outputs.extend(torch.argmax(torch.exp(o), dim=-1))
+            if not self.opts.openset == "onevsall":
+                aux = torch.argmax(torch.exp(o), dim=-1)
+            else:
+                aux = torch.argmax(o, dim=-1)
+            outputs.extend(aux)
             gts.extend(x['y_gt']) 
             losses.append(l)
         l = torch.mean(torch.Tensor(l))
@@ -224,6 +272,7 @@ class Net(pl.LightningModule):
             sequences_padded, lengths, y_gt, ids = train_batch
             x = (sequences_padded, lengths)
         outputs = self(x)
+        print(outputs)
         if "voting" in self.opts.model:
             new_gt = []
             for i, y in enumerate(y_gt.cpu().detach().numpy()):
@@ -234,7 +283,8 @@ class Net(pl.LightningModule):
                 slice = o[:lengths[i],:]
                 new_output.append(slice)
             outputs = torch.cat(new_output)
-        outputs = torch.exp(outputs)
+        if not self.opts.openset == "onevsall":
+            outputs = torch.exp(outputs)
         # print(torch.argmax(outputs, dim=1), y_gt)
         acc = (torch.argmax(outputs, dim=1) == y_gt).sum() / y_gt.size(0)
         # print("Acc Test epoch: ", acc, y_gt.shape)
@@ -250,7 +300,11 @@ class Net(pl.LightningModule):
         for x in outs:
             o = x['outputs']
             # print(o.shape)
-            outputs.extend(torch.argmax(torch.exp(o), dim=-1))
+            if not self.opts.openset == "onevsall":
+                aux = torch.argmax(torch.exp(o), dim=-1)
+            else:
+                aux = torch.argmax(o, dim=-1)
+            outputs.extend(aux)
             gts.extend(x['y_gt']) 
         
         outputs = torch.Tensor(outputs)   
@@ -314,7 +368,8 @@ class Net(pl.LightningModule):
         acc = (torch.argmax(outputs, dim=1) == y_gt).sum() / y_gt.size(0)
         # print("Acc predict epoch: ", acc, y_gt.shape)
         # print(y_gt[0])
-        outputs = torch.exp(outputs)
+        if not self.opts.openset == "onevsall":
+            outputs = torch.exp(outputs)
         if "voting" in self.opts.model:
             return {'outputs': outputs, 'y_gt':ys, 'ids':ids} # outputs, ids, ys
         else:

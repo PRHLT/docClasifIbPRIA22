@@ -1,7 +1,7 @@
 import os, glob, shutil
 
-path = "/data/carabela_segmentacion/JMBD4949_4950_idx"
-path_dest = "/data/carabela_segmentacion/JMBD4949_4950_idx/prod"
+path = "/data/carabela_segmentacion/JMBD4949_4950_idx_trans"
+path_dest = "/data/carabela_segmentacion/JMBD4949_4950_idx_trans/prod"
 classes = [x.lower() for x in "P,CP,O,A,T,V,R,CEN,DP,D,C,TH".split(",")]
 # p cp o a t v r cen dp d c th 
 if not os.path.exists(path_dest):

@@ -116,6 +116,13 @@ class Arguments(object):
         )
 
         general.add_argument(
+            "--openset",
+            default="",
+            type=str,
+            help="""[1vsall] | """,
+        )
+
+        general.add_argument(
             "--gpu",
             default=0,
             type=int,

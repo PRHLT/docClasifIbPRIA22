@@ -64,7 +64,10 @@ def save_results(dataset, tensor, opts, _name="", ids=None, ys=None):
     create_dir(dir)
     fname = os.path.join(dir, f"results{_name}.txt")
     f = open(fname, "w")
-    f.write("Legajo GT(index) Softmax")
+    last_layer = "Softmax"
+    if opts.openset == "onevsall":
+        last_layer = "Sigmoid"
+    f.write(f"Legajo GT(index) {last_layer}")
     for i in range(len(number_to_class)):
         f.write(f' {number_to_class[i]}')
     f.write("\n")
@@ -257,8 +260,11 @@ def main():
         fname = os.path.join(dir, "results.txt")
         class_dict, number_to_class = load_dict_class(opts.class_dict)
         f = open(fname, "w")
+        last_layer = "Softmax"
+        if opts.openset == "onevsall":
+            last_layer = "Sigmoid"
         # f.write("Legajo GT(index) Softmax\n")
-        f.write("Legajo GT(index) Softmax")
+        f.write(f"Legajo GT(index) {last_layer}")
         for i in range(len(number_to_class)):
             f.write(f' {number_to_class[i]}')
         f.write("\n")
@@ -273,9 +279,13 @@ def main():
                 n_test += 1
                 net = models.Net(layers=opts.layers, len_feats=textDataset.len_feats, n_classes=textDataset.num_classes, opts=opts)
                 net.to(device)
-                trainer = pl.Trainer(min_epochs=opts.epochs, max_epochs=opts.epochs, logger=[logger_csv], #wandb_logger
+                early_stop_callback = EarlyStopping(monitor="val_epoch_loss", min_delta=0.00, patience=50, verbose=True, mode="max")
+                trainer = pl.Trainer(min_epochs=20, max_epochs=opts.epochs,
+                logger=[logger_csv], #wandb_logger
                         deterministic=True if opts.seed is not None else False,
                         default_root_dir=path_save, auto_select_gpus=True,
+                        gradient_clip_val=0.2,
+                        callbacks=[early_stop_callback,]
                     )
                 trainer.fit(net, textDataset)
                 results_test = trainer.test(net, textDataset)
@@ -325,9 +335,12 @@ def main():
                         
                         net = models.Net(layers=opts.layers, len_feats=textDataset.len_feats, n_classes=textDataset.num_classes, opts=opts)
                         net.to(device)
-                        trainer = pl.Trainer(min_epochs=opts.epochs, max_epochs=opts.epochs, logger=[logger_csv], #wandb_logger
+                        early_stop_callback = EarlyStopping(monitor="val_epoch_loss", min_delta=0.00, patience=50, verbose=True, mode="max")
+                        trainer = pl.Trainer(min_epochs=20, max_epochs=opts.epochs, logger=[logger_csv], #wandb_logger
                             deterministic=True if opts.seed is not None else False,
                             default_root_dir=path_save, auto_select_gpus=True,
+                            gradient_clip_val=0.2,
+                            callbacks=[early_stop_callback,]
                         )
                         try:
                             trainer.fit(net, textDataset)

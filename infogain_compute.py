@@ -57,7 +57,10 @@ if __name__ == "__main__":
         m.append(doc)
         for line in lines:
             line = line.strip() #Quitar espacios blancos inecesarios
-            word, prob_word = line.split() #Split por espacios en blanco
+            try:
+                word, prob_word = line.split() #Split por espacios en blanco
+            except:
+                continue
             if len(word) < 3: continue
             prob_word = float(prob_word) #Cogemos la probabilidad
             if(prob_word > prob):#Posibilidad de filtrado
@@ -104,6 +107,8 @@ if __name__ == "__main__":
                 r += 1 
                 for line in lines:
                     line = line.strip() #Quitar espacios blancos inecesarios
+                    if len(line.split()) < 2:
+                        continue
                     word = line.split()[0] #Split por espacios en blanco
                     if len(word) < 3: continue
                     prob_word = float(line.split()[1]) #Cogemos la probabilidad
@@ -128,6 +133,8 @@ if __name__ == "__main__":
                 r += 1 
                 for line in lines:
                     line = line.strip() #Quitar espacios blancos inecesarios
+                    if len(line.split()) < 2:
+                        continue
                     word = line.split()[0] #Split por espacios en blanco
                     if len(word) < 3: continue
                     prob_word = float(line.split()[1]) #Cogemos la probabilidad

@@ -26,14 +26,14 @@ if __name__ == "__main__":
     # path_results = "/data2/jose/projects/docClasifIbPRIA22/works_JMBD4949_loo_1page_LSTM/work_128,128_numFeat1024_128epochs_0.01lrADAM/results.txt"
     tr = "tr49"; te = "te50"
     # tr = "tr50"; te = "te49"
-    nmb_feats = [2**x for x in range(9,10)]
-    layers_list=["128"]
+    nmb_feats = [2**x for x in range(12,13)]
+    layers_list=["128,128"]
     # work_dir = f"works_{tr}_{te}_groups_11classes_other"
-    work_dir = f"works_JMBD4949_4950_loo_1page_other_LSTM"
+    work_dir = f"works_JMBD4949_4950_loo_groups"
     for layers in layers_list:
         print(f"TRAINING WITH {tr} - layers {layers}")
         for feats in nmb_feats:
-            path_results = f"/data2/jose/projects/docClasifIbPRIA22/{work_dir}/work_{layers}_numFeat{feats}_128epochs_0.01lrADAM/results.txt"
+            path_results = f"/data2/jose/projects/docClasifIbPRIA22/{work_dir}/work_{layers}_numFeat{feats}/results.txt"
             res, hyps, gts, pnames = read_results(path_results)
             gts = np.array(gts)
             hyps = np.array(hyps)

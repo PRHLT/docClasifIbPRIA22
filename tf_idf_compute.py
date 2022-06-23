@@ -68,7 +68,10 @@ if __name__ == "__main__":
             continue
         for line in lines:
             line = line.strip() #Quitar espacios blancos inecesarios
-            word, prob_word = line.split() #Split por espacios en blanco
+            try:
+                word, prob_word = line.split() #Split por espacios en blanco
+            except:
+                continue
             prob_word = float(prob_word) #Cogemos la probabilidad
             if(prob_word > prob):
                 #Calculo de fD -> Numero total de palabras en X
@@ -121,6 +124,8 @@ if __name__ == "__main__":
         f.close()
         for line in lines:
             line = line.strip() #Quitar espacios blancos inecesarios
+            if len(line.split()) < 2:
+                continue
             word = line.split()[0] #Split por espacios en blanco
             words.append(word)
     
@@ -177,7 +182,10 @@ if __name__ == "__main__":
                 continue
             for line in lines:
                 line = line.strip() #Quitar espacios blancos inecesarios
-                word, prob_word = line.split() #Split por espacios en blanco
+                try:
+                    word, prob_word = line.split() #Split por espacios en blanco
+                except:
+                    continue
                 prob_word = float(prob_word)
                 if(prob_word > prob):
                     #Calculo de fD -> Numero total de palabras en X
@@ -253,7 +261,10 @@ if __name__ == "__main__":
             #     continue
             for line in lines:
                 line = line.strip() #Quitar espacios blancos inecesarios
-                word, prob_word = line.split() #Split por espacios en blanco
+                try:
+                    word, prob_word = line.split() #Split por espacios en blanco
+                except:
+                    continue
                 prob_word = float(prob_word)
                 if(prob_word > prob):
                     #Calculo de fD -> Numero total de palabras en X
