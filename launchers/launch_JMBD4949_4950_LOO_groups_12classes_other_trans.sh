@@ -13,7 +13,7 @@ path_data=work_JMBD4949_4950_loo_groups_trans
 for try in $trys; do
     for ngf in "${ngfs[@]}"; do
         for numfeat in $numfeats; do
-            python main.py --epochs 500 --work_dir works_JMBD4949_4950_loo_groups/work_${ngf}_numFeat${numfeat} \
+            python main.py --epochs 500 --work_dir works_JMBD4949_4950_loo_groups_12classes_other_trans/work_${ngf}_numFeat${numfeat} \
             --layers ${ngf} --batch_size 50 --lr 0.01 --optim ADAM \
             --num_workers 0 --seed ${try}  --num_feats ${numfeat} \
             --tr_data ${path_data}/tfidf_4949_4950_loo.txt \
