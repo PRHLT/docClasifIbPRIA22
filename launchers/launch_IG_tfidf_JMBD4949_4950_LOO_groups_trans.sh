@@ -1,5 +1,5 @@
 cd ..
-path_resultados=work_JMBD4949_4950_loo_groups_trans
+path_resultados=work_JMBD4949_4950_loo_groups_trans_12classes
 mkdir ${path_resultados}
 #### Information Gain
 data_path=/data/carabela_segmentacion/JMBD4949_4950_idx_trans

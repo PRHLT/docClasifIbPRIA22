@@ -1,4 +1,3 @@
-from turtle import forward
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -39,37 +38,46 @@ class Net(pl.LightningModule):
         self.layers = layers
         self.num_params = 0
         self.batch_size = opts.batch_size
+        self.type_seq = opts.type_seq
         if opts.model == "MLP":
-            if layers == [0]:
-                model = [nn.Linear((len_feats), n_classes)]
-            else:
-                if len(layers) == 1:
-                    self.hidden = nn.Linear(len_feats, layers[0])
-                    self.bn = nn.BatchNorm1d(layers[0])
-                    self.linear = nn.Linear(layers[0], n_classes)
+            if opts.type_seq == "MLP":
+                if layers == [0]:
+                    model = [nn.Linear((len_feats), n_classes)]
                 else:
-                    model = [nn.Linear((len_feats), layers[0]),
-                            nn.BatchNorm1d(layers[0]),
-                            nn.ReLU(True),
-                            nn.Dropout(opts.DO)
-                            ]
-                    for i in range(1, len(layers)):
-                        model = model + [nn.Linear(layers[i-1], layers[i]),
-                            nn.BatchNorm1d(layers[i]),
-                            nn.ReLU(True),
-                            nn.Dropout(opts.DO)
-                            ]
-                    model = model + [
-                            nn.Linear(layers[-1], n_classes),
-                            # nn.Softmax()
-                    ]
-            if len(layers) == 1 and layers != [0]:
-                for param in self.parameters():
-                    self.num_params += param.numel()
-            else:
-                self.model = nn.Sequential(*model)
-                for param in self.model.parameters():
-                    self.num_params += param.numel()
+                    if len(layers) == 1:
+                        self.hidden = nn.Linear(len_feats, layers[0])
+                        self.bn = nn.BatchNorm1d(layers[0])
+                        self.linear = nn.Linear(layers[0], n_classes)
+                    else:
+                        model = [nn.Linear((len_feats), layers[0]),
+                                nn.BatchNorm1d(layers[0]),
+                                nn.ReLU(True),
+                                nn.Dropout(opts.DO)
+                                ]
+                        for i in range(1, len(layers)):
+                            model = model + [nn.Linear(layers[i-1], layers[i]),
+                                nn.BatchNorm1d(layers[i]),
+                                nn.ReLU(True),
+                                nn.Dropout(opts.DO)
+                                ]
+                        model = model + [
+                                nn.Linear(layers[-1], n_classes),
+                                # nn.Softmax()
+                        ]
+                if len(layers) == 1 and layers != [0]:
+                    for param in self.parameters():
+                        self.num_params += param.numel()
+                else:
+                    self.model = nn.Sequential(*model)
+                    for param in self.model.parameters():
+                        self.num_params += param.numel()
+            else: #transformer 
+                nheads = opts.nheads
+                dim_feedforward = opts.dim_feedforward
+                self.encoder_layer = nn.TransformerEncoderLayer(d_model=len_feats, nhead=nheads, dim_feedforward=dim_feedforward)
+                self.lin = nn.Linear(len_feats, n_classes)
+                
+            
         elif "LSTM" in opts.model:
             self.model_lstm = nn.LSTM(len_feats, layers[0], len(layers), batch_first=True, dropout=opts.DO, bidirectional=True)
             if "voting" in  opts.model:
@@ -103,25 +111,41 @@ class Net(pl.LightningModule):
         """
         # print(inp)
         if self.opts.model == "MLP":
-            if len(self.layers) == 1 and self.layers != [0]:
-                relu = nn.ReLU()
+            if self.opts.type_seq == "MLP":
+                if len(self.layers) == 1 and self.layers != [0]:
+                    relu = nn.ReLU()
 
-                prod_w0 = self.hidden(inp)
+                    prod_w0 = self.hidden(inp)
 
-                hidden = relu(self.bn(prod_w0))
+                    hidden = relu(self.bn(prod_w0))
 
-                w_final = self.linear(hidden)
+                    w_final = self.linear(hidden)
+                    if self.opts.openset == "onevsall":
+                        probs = self.sigmoid(w_final)
+                    else:
+                        probs = F.log_softmax(w_final, dim=-1)
+                    return probs
                 if self.opts.openset == "onevsall":
-                    probs = self.sigmoid(w_final)
+                    x = self.model(inp)
+                    probs = self.sigmoid(x)
                 else:
-                    probs = F.log_softmax(w_final, dim=-1)
+                    probs = F.log_softmax(self.model(inp), dim=-1)
                 return probs
-            if self.opts.openset == "onevsall":
-                x = self.model(inp)
-                probs = self.sigmoid(x)
             else:
-                probs = F.log_softmax(self.model(inp), dim=-1)
-            return probs
+                inp = inp.unsqueeze(0)
+                # if self.type_seq == "encoder":
+                x = self.encoder_layer(inp)
+                # elif self.type_seq == "tencoder":
+                #     x = self.seq(inp)
+                # elif self.type_seq == "mha":
+                #     x,_ = self.seq(inp, inp, inp)
+                x = x.squeeze(0)
+                x = self.lin(x)
+                if self.opts.openset == "onevsall":
+                    probs = self.sigmoid(x)
+                else:
+                    probs = F.log_softmax(x, dim=-1)
+                return probs
         elif "LSTM" in self.opts.model:
             x, sizes = inp
             packed_output, (hn, cn) = self.model_lstm(x)
@@ -135,6 +159,7 @@ class Net(pl.LightningModule):
                 output = torch.cat((out_forward, out_reverse), 1)
                 y = self.model_linear(output)
                 return F.log_softmax(y, dim=-1)
+
     
     def configure_optimizers(self):
         if self.opts.optim == "ADAM":

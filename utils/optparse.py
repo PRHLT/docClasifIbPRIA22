@@ -226,9 +226,9 @@ class Arguments(object):
         )
         optim.add_argument(
             "--type_seq",
-            default="mha",
+            default="MLP",
             type=str,
-            choices=["mha", "tencoder", "encoder", "transformer"],
+            choices=["MLP", "mha", "tencoder", "encoder", "transformer"],
             help="""Choose the kind of """,
         )
         optim.add_argument(

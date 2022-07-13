@@ -279,6 +279,7 @@ def main():
                 n_test += 1
                 net = models.Net(layers=opts.layers, len_feats=textDataset.len_feats, n_classes=textDataset.num_classes, opts=opts)
                 net.to(device)
+                # print(net)
                 early_stop_callback = EarlyStopping(monitor="val_epoch_loss", min_delta=0.00, patience=50, verbose=True, mode="max")
                 trainer = pl.Trainer(min_epochs=20, max_epochs=opts.epochs,
                 logger=[logger_csv], #wandb_logger
